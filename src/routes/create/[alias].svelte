@@ -14,8 +14,8 @@
     ])
 
     export const load: Load = async ({ fetch, params }) => {
-        const alias = params.alias.trim().toLowerCase()
-        const id = lookup.get(alias)
+        const alias = params.alias?.trim().toLowerCase()
+        const id = alias && lookup.get(alias)
         if (!id) {
             return // 404
         }
