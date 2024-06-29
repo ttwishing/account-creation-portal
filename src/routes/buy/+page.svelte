@@ -8,6 +8,15 @@
             throw await HTTPError.fromResponse(res)
         }
 
+        const creationCode = url.searchParams.get('code')
+
+        if (creationCode) {
+            return {
+                status: 301,
+                redirect: `accounts/create?code=${creationCode}&${url.search}`
+            }
+        }
+
         return {
             props: {
                 ...(await res.json()),

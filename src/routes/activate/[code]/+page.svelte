@@ -8,6 +8,15 @@
     export const load: Load = async ({ fetch, url, params }) => {
         const payload = params.id
         const step = url.searchParams.get('step')
+        const ownerKey = url.searchParams.get('owner')
+        const activeKey = url.searchParams.get('active')
+
+        if (ownerKey && activeKey) {
+            return {
+                status: 301,
+                redirect: `/activate/${payload}/create?step=launch&${url.searchParams}`
+            }
+        }
 
         const res = await fetch(`/api/ticket/${payload}`)
 
@@ -15,6 +24,7 @@
             throw await HTTPError.fromResponse(res)
         }
         const ticket: Ticket = await res.json()
+
         return {
             props: {
                 payload,
