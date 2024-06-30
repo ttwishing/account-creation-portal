@@ -91,3 +91,17 @@ export function createAccount(payload: CreateAccountRequest) {
         code: payload.code
     })
 }
+
+export async function getProduct() {
+    const productId = import.meta.env.VITE_SEXTANT_PRODUCT_ID;
+    if (!productId) {
+      throw Error('VITE_SEXTANT_PRODUCT_ID is not defined');
+    }
+
+    const res = await fetch(`/api/products/${productId}`);
+    if (!res.ok) {
+      throw Error(await res.text());
+    }
+
+    return res.json();
+}

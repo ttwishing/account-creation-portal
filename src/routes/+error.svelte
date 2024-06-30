@@ -4,6 +4,16 @@
     export let message: string;
     export let status: number;
     export let details: string | undefined;
+
+    import type { LoadEvent } from '@sveltejs/kit';
+  
+    export const load = ({ data }: LoadEvent) => {
+    return {
+        message: data?.message,
+        status: data?.status,
+        details: data?.details
+    };
+    };
 </script>
 
 <h1 class="text-4xl font-bold text-center mt-10">{status}</h1>

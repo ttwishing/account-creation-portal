@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { error, type Load } from '@sveltejs/kit';
+	import type { Product } from '$lib/types';
 	import { loadStripe } from '@stripe/stripe-js';
 
   interface CreateRequestArguments {
@@ -8,7 +8,7 @@
   }
 
   interface PageData {
-    product: { name: string };
+    product: Product;
     price: { id: string };
     key: string;
     createRequestArguments: CreateRequestArguments;

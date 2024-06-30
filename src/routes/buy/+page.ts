@@ -1,15 +1,9 @@
-import { error, type Load } from "@sveltejs/kit";
+import { type Load } from "@sveltejs/kit";
+
+import { getProduct } from "$lib/sextant";
 
 export const load: Load = async ({ fetch, url }) => {
-    const productId = import.meta.env.VITE_SEXTANT_PRODUCT_ID;
-    if (!productId) {
-      throw error(500, 'VITE_SEXTANT_PRODUCT_ID is not defined');
-    }
-
-    const res = await fetch(`/api/products/${productId}`);
-    if (!res.ok) {
-      throw error(res.status, await res.text());
-    }
+    const product = await getProduct();
 
     const creationCode = url.searchParams.get('code');
     if (creationCode) {
@@ -19,15 +13,14 @@ export const load: Load = async ({ fetch, url }) => {
       };
     }
 
-    const product = await res.json();
-
     return {
-      product: product.product,
+      product: product,
       price: product.price,
-      key: product.key,
       createRequestArguments: {
         login_scope: url.searchParams.get('scope'),
-        return_path: url.searchParams.get('return_url')
+        return_path: url.searchParams.get('return_url'),
+        owner_key: url.searchParams.get('owner_key'),
+        active_key: url.searchParams.get('active_key'),
       },
       pageQueryString: url.searchParams.toString()
     };

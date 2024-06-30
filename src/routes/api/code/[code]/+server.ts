@@ -1,12 +1,12 @@
 import { json, type RequestHandler } from '@sveltejs/kit'
-import { SextantError, verifyTicket } from '$lib/sextant'
+import { SextantError, verifyCreationCode } from '$lib/sextant'
 
 export const GET: RequestHandler = async ({ params }) => {
     try {
-        if (!params.id) {
+        if (!params.code) {
             return json({ error: 'Missing ticket id' }, { status: 400 })
         }
-        const result = await verifyTicket(params.id)
+        const result = await verifyCreationCode(params.code)
         return json(result, { status: 200 })
     } catch (error) {
         if (error instanceof SextantError && error.code === 404) {

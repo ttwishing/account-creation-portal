@@ -3,6 +3,7 @@ export interface Product {
     name: string
     image: string
     chain: string
+    key: string
 }
 
 export interface Ticket {

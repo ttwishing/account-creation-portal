@@ -1,7 +1,8 @@
 <script lang="ts">
   import { writable, get } from 'svelte/store';
   import { goto } from '$app/navigation';
-	import { checkAccountName } from '$lib/sextant';
+  import { checkAccountName } from '$lib/sextant';
+  import { onMount } from 'svelte';
 
   export let code: string;
   export let productId: string;
@@ -11,6 +12,20 @@
   let nameAvailable = writable<boolean | null>(null);
   let loading = writable(false);
   let error = writable<string | null>(null);
+
+  let activeKey: string | null = null;
+  let ownerKey: string | null = null;
+  let keysMissing = writable(false);
+
+  onMount(() => {
+    const searchParams = new URLSearchParams(pageQueryString);
+    activeKey = searchParams.get('activeKey');
+    ownerKey = searchParams.get('ownerKey');
+
+    if (!activeKey || !ownerKey) {
+      keysMissing.set(true);
+    }
+  });
 
   async function checkAccountNameAvailability(accountName: string) {
     error.set(null);
@@ -43,14 +58,8 @@
     if (accountNameValue) {
       await checkAccountNameAvailability(accountNameValue);
       if (get(nameAvailable)) {
-        // Proceed with account creation logic
-        const urlParams = new URLSearchParams(pageQueryString);
-        const activeKey = urlParams.get('activeKey');
-        const ownerKey = urlParams.get('ownerKey');
-        const accountName = accountNameValue;
-
-        if (!activeKey || !ownerKey || !accountName) {
-          console.error('Missing required keys or account name');
+        if (!activeKey || !ownerKey) {
+          console.error('Missing required keys');
           return;
         }
 
@@ -59,7 +68,7 @@
           productId,
           activeKey,
           ownerKey,
-          accountName,
+          accountName: accountNameValue,
         };
 
         try {
@@ -88,35 +97,41 @@
 </script>
 
 <h1 class="text-3xl font-bold mb-6">Create new account</h1>
-<p class="mb-4">Enter the desired EOS account name:</p>
 
-<div class="mb-4">
-  <input
-    type="text"
-    class="p-2 border rounded w-full"
-    on:input={handleAccountNameInput}
-    placeholder="Enter account name"
-  />
-  {#if $error}
-    <p class="text-red-500 mt-2">{$error}</p>
-  {/if}
-  {#if $nameAvailable === true}
-    <p class="text-green-500 mt-2">This account name is available.</p>
-  {/if}
-  {#if $nameAvailable === false}
-    <p class="text-red-500 mt-2">This account name is not available.</p>
-  {/if}
-</div>
+{#if $keysMissing}
+  <p class="mb-4">To create an account using Anchor, please provide the following code:</p>
+  <pre class="bg-gray-200 p-4 rounded">{code}</pre>
+{:else}
+  <p class="mb-4">Enter the desired EOS account name:</p>
 
-<button
-  class="p-2 bg-blue-500 text-white rounded"
-  on:click={handleConfirm}
-  disabled={$loading}
->
-  {#if $loading}
-    Loading...
-  {/if}
-  {#if !$loading}
-    Confirm
-  {/if}
-</button>
+  <div class="mb-4">
+    <input
+      type="text"
+      class="p-2 border rounded w-full"
+      on:input={handleAccountNameInput}
+      placeholder="Enter account name"
+    />
+    {#if $error}
+      <p class="text-red-500 mt-2">{$error}</p>
+    {/if}
+    {#if $nameAvailable === true}
+      <p class="text-green-500 mt-2">This account name is available.</p>
+    {/if}
+    {#if $nameAvailable === false}
+      <p class="text-red-500 mt-2">This account name is not available.</p>
+    {/if}
+  </div>
+
+  <button
+    class="p-2 bg-blue-500 text-white rounded"
+    on:click={handleConfirm}
+    disabled={$loading}
+  >
+    {#if $loading}
+      Loading...
+    {/if}
+    {#if !$loading}
+      Confirm
+    {/if}
+  </button>
+{/if}
