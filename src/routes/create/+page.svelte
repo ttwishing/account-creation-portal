@@ -1,25 +1,7 @@
-<script context="module" lang="ts">
-  import { redirect, type Load } from '@sveltejs/kit';
-  import { getEnv } from '$lib/helpers';
-  import { checkAccountName, createAccount } from '$lib/sextant'; // Adjust the import path as needed
-
-  export const load: Load = async ({ url }) => {
-    const code = url.searchParams.get('code');
-    if (!code) {
-      throw redirect(302, '/buy');
-    }
-
-    const productId = getEnv('VITE_SEXTANT_PRODUCT_ID');
-    return {
-      props: { code, productId, pageQueryString: url.searchParams.toString() }
-    };
-  };
-</script>
-
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { writable, get } from 'svelte/store';
   import { goto } from '$app/navigation';
+	import { checkAccountName } from '$lib/sextant';
 
   export let code: string;
   export let productId: string;

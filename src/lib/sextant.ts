@@ -57,7 +57,7 @@ export async function createTicket(code: string, productId: string, comment: str
     })
 }
 
-export async function verifyTicket(code: string) {
+export async function verifyCreationCode(code: string) {
     const ticket = await sextantApiCall('/tickets/verify', {
         code,
         deviceId: sextantUUID,
