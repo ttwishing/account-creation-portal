@@ -21,6 +21,9 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@wharfkit/antelope": "^1.0.8"
+		"@greymass/account-creation": "^0.1.0",
+		"@stripe/stripe-js": "^4.0.0",
+		"@wharfkit/antelope": "^1.0.8",
+		"stripe": "^16.1.0"
 	}
 }

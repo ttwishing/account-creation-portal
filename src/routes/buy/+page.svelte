@@ -1,113 +1,106 @@
-<script context="module" lang="ts">
-    import type { Load } from '@sveltejs/kit'
-
-    export const load: Load = async ({ fetch, url }) => {
-        const id = url.searchParams.get('p')
-        const res = await fetch(`/api/products/${id}`)
-        if (!res.ok) {
-            throw await HTTPError.fromResponse(res)
-        }
-
-        const creationCode = url.searchParams.get('code')
-
-        if (creationCode) {
-            return {
-                status: 301,
-                redirect: `accounts/create?code=${creationCode}&${url.search}`
-            }
-        }
-
-        return {
-            props: {
-                ...(await res.json()),
-                createRequestArguments: {
-                    login_scope: url.searchParams.get('scope'),
-                    return_path: url.searchParams.get('return_url')
-                },
-                pageQueryString: url.search
-            }
-        }
-    }
-</script>
-
 <script lang="ts">
-    import type { Stripe } from 'stripe'
+  import { error, type Load } from '@sveltejs/kit';
+	import { loadStripe } from '@stripe/stripe-js';
 
-    import { loadStripe } from '@stripe/stripe-js'
-    import type { Stripe as StripeClient } from '@stripe/stripe-js'
-    import { onMount } from 'svelte'
+  interface CreateRequestArguments {
+    login_scope: string | null;
+    return_path: string | null;
+  }
 
-    import Product from '~/components/product.svelte'
-    import { HTTPError } from '$lib/helpers'
-    import Button from '~/components/button.svelte'
-    import { busy } from '$lib/stores'
-    import type { CreateRequestArguments } from '@greymass/account-creation'
+  interface PageData {
+    product: { name: string };
+    price: { id: string };
+    key: string;
+    createRequestArguments: CreateRequestArguments;
+    pageQueryString: string;
+  }
 
-    export let product: Stripe.Product
-    export let price: Stripe.Price
-    export let key: string
-    export let createRequestArguments: CreateRequestArguments
-    export let pageQueryString: string
+  export let data: PageData;
 
-    let stripePromise: Promise<StripeClient>
-    let error: Error | undefined
+  let buyError: string | undefined;
 
-    onMount(() => {
-        if (!stripePromise) {
-            stripePromise = loadStripe(key)
-        }
-    })
+  async function buy(): Promise<void> {
+    const body = JSON.stringify({
+      ...data.createRequestArguments,
+      id: data.price.id,
+      cancelPath: `/create?${data.pageQueryString}`
+    });
 
-    async function buy() {
-        const body = JSON.stringify({
-            ...createRequestArguments,
-            id: price.id,
-            cancelPath: `/create?${pageQueryString}`
-        })
-        const res = await fetch('/api/products/session', {
-            body,
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        if (!res.ok) {
-            throw await HTTPError.fromResponse(res)
-        }
-        const result = await res.json()
-        const stripe = await stripePromise
+    const res = await fetch('/api/products/session', {
+      body,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
 
-        await stripe.redirectToCheckout({ sessionId: result.sessionId })
+    if (!res.ok) {
+      throw new Error(await res.text());
     }
 
-    function handleBuy(event: Event) {
-        event.preventDefault()
-        error = undefined
-        busy.set(true)
-        buy()
-            .catch((err) => {
-                error = err
-            })
-            .finally(() => {
-                busy.set(false)
-            })
+    const result: { sessionId: string } = await res.json();
+    const stripe = await loadStripe(data.key);
+
+    if (stripe) {
+      await stripe.redirectToCheckout({ sessionId: result.sessionId });
     }
+  }
+
+  function handleBuy(event: Event): void {
+    event.preventDefault();
+    buyError = undefined;
+    buy()
+      .catch((err: Error) => {
+        buyError = err.message;
+      })
+  }
+
+  export const load: Load = async ({ fetch, url }) => {
+    const productId = import.meta.env.VITE_SEXTANT_PRODUCT_ID;
+    if (!productId) {
+      throw error(500, 'VITE_SEXTANT_PRODUCT_ID is not defined');
+    }
+
+    const res = await fetch(`/api/products/${productId}`);
+    if (!res.ok) {
+      throw error(res.status, await res.text());
+    }
+
+    const creationCode = url.searchParams.get('code');
+    if (creationCode) {
+      return {
+        status: 301,
+        redirect: `accounts/create?code=${creationCode}&${url.searchParams}`
+      };
+    }
+
+    const product = await res.json();
+
+    return {
+      product: product.product,
+      price: product.price,
+      key: product.key,
+      createRequestArguments: {
+        login_scope: url.searchParams.get('scope'),
+        return_path: url.searchParams.get('return_url')
+      },
+      pageQueryString: url.searchParams.toString()
+    };
+  };
 </script>
 
-<h1>Create new account</h1>
-<p>Review {product.name} price</p>
-<Product {product} {price} />
-<Button primary size="large" fluid on:action={handleBuy}>Continue to payment &rarr;</Button>
-<noscript>
-    <p>Sorry, our payment processor Stripe requires JavaScript to be enabled to function.</p>
-</noscript>
-{#if error}
-    <p class="error">
-        <strong>ERROR</strong>
-        {error.message}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-4">Create new account</h1>
+  <p class="mb-4">Review {data.product.name} price</p>
+  <button class="w-full mt-4" on:click={handleBuy}>
+    Continue to payment &rarr;
+  </button>
+  <noscript>
+    <p class="mt-4 text-red-600">
+      Sorry, our payment processor Stripe requires JavaScript to be enabled to function.
     </p>
-{/if}
-
-<style>
-    .error {
-        color: red;
-    }
-</style>
+  </noscript>
+  {#if buyError}
+    <p class="mt-4 text-red-600">
+      <strong>ERROR:</strong> {buyError}
+    </p>
+  {/if}
+</div>

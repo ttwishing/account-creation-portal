@@ -1,8 +1,6 @@
 /** Sextant API helpers, backend only. */
 
-import { Bytes, PrivateKey } from '@greymass/eosio'
-import { CreateRequest } from '@greymass/account-creation'
-import type { CreateRequestType } from '@greymass/account-creation'
+import { Bytes, PrivateKey } from '@wharfkit/antelope'
 import { getEnv } from '$lib/helpers'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 
@@ -22,7 +20,7 @@ export class SextantError extends Error {
     }
 }
 
-async function sextantApiCall<T = any>(path: string, data: any): Promise<T> {
+async function sextantApiCall<T = any>(path: string, data: any): Promise<T | undefined> {
     const body = Bytes.from(JSON.stringify(data), 'utf8')
     const signature = sextantKey.signMessage(body)
 
@@ -45,7 +43,7 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T> {
     }
     if (
         response.headers.get('Content-Type') &&
-        response.headers.get('Content-Type').startsWith('application/json')
+        response.headers.get('Content-Type')?.startsWith('application/json')
     ) {
         return response.json()
     }
@@ -59,10 +57,9 @@ export async function createTicket(code: string, productId: string, comment: str
     })
 }
 
-export async function verifyTicket(payload: CreateRequestType) {
-    const request = CreateRequest.from(payload)
+export async function verifyTicket(code: string) {
     const ticket = await sextantApiCall('/tickets/verify', {
-        code: request.code,
+        code,
         deviceId: sextantUUID,
         version: 'whalesplainer ' + (import.meta.env.PUBLIC_REV || 'dev')
     })
@@ -70,7 +67,14 @@ export async function verifyTicket(payload: CreateRequestType) {
     return ticket
 }
 
-interface CreateAccountRequest {
+export function checkAccountName(productId: string, accountName: NameType) {
+    return sextantApiCall('/accounts/check', {
+        accountName: String(accountName),
+        productId,
+    })
+}
+
+export interface CreateAccountRequest {
     code: string
     productId: string
     activeKey: PublicKeyType

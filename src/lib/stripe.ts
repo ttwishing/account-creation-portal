@@ -1,9 +1,8 @@
 /** Stripe API helpers, backend only. */
 
 import Stripe from 'stripe'
-import { Bytes, Checksum256 } from '@greymass/eosio'
-import { CreateRequest } from '@greymass/account-creation'
-import type { CreateRequestArguments } from '@greymass/account-creation'
+import { Bytes, Checksum256 } from '@wharfkit/antelope'
+import { CreateRequest, type CreateRequestArguments } from '@greymass/account-creation'
 
 import { getEnv, randomCode } from './helpers'
 
@@ -27,7 +26,7 @@ if (!keys.private || !keys.public || !keys.endpointSecret) {
 }
 
 const client = new Stripe(keys.private, {
-    apiVersion: '2020-08-27',
+    apiVersion: '2024-06-20',
     httpClient: Stripe.createFetchHttpClient()
 })
 
@@ -73,9 +72,9 @@ export async function createSession(
     const loginUrl = `${buoyServiceUrl.origin}/${codeHash}`
 
     const request = CreateRequest.from({
+        ...createRequestArguments,
         code,
         login_url: loginUrl,
-        ...createRequestArguments
     }).toString(false)
 
     const session = await client.checkout.sessions.create({
@@ -103,7 +102,7 @@ export async function webhookEvent(request: Request) {
     const payload = await request.text()
     return await client.webhooks.constructEventAsync(
         payload,
-        request.headers.get('Stripe-Signature'),
+        String(request.headers.get('Stripe-Signature')),
         keys.endpointSecret,
         30,
         Stripe.createSubtleCryptoProvider()

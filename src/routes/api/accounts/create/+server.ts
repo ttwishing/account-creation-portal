@@ -1,6 +1,5 @@
-// src/routes/api/create-account.ts
 import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import type { RequestHandler } from '@sveltejs/kit';
 import { createAccount } from '$lib/sextant'; // Adjust the import path as needed
 import type { PublicKeyType, NameType } from '@wharfkit/antelope';
 
