@@ -2,6 +2,7 @@
 
 import { Bytes, PrivateKey } from '@wharfkit/antelope'
 import { getEnv } from '$lib/helpers'
+import { SEXTANT_URL, SEXTANT_UUID} from '$env/static/public'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 
 const sextantUrl = getEnv('SEXTANT_URL', 'http://localhost:8080')
@@ -93,9 +94,10 @@ export function createAccount(payload: CreateAccountRequest) {
 }
 
 export async function getProduct() {
-    const productId = import.meta.env.VITE_SEXTANT_PRODUCT_ID;
+    console.log({ env: import.meta.env })
+    const productId = import.meta.env.SEXTANT_PRODUCT_ID;
     if (!productId) {
-      throw Error('VITE_SEXTANT_PRODUCT_ID is not defined');
+      throw Error('SEXTANT_PRODUCT_ID is not defined');
     }
 
     const res = await fetch(`/api/products/${productId}`);
