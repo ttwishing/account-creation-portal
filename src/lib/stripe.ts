@@ -4,19 +4,21 @@ import Stripe from 'stripe'
 import { Bytes, Checksum256 } from '@wharfkit/antelope'
 import { CreateRequest, type CreateRequestArguments } from '@greymass/account-creation'
 
-import { getEnv, randomCode } from './helpers'
+import { randomCode } from './helpers'
+import { BUOY_SERVICE_URL, STRIPE_ENDPOINT_SECRET, STRIPE_PRIVATE_KEY, STRIPE_PUBLIC_KEY } from '$env/static/private'
+import { PUBLIC_URL } from '$env/static/public'
 
 /** Stripe API keys, public will be sent to frontend. */
 const keys = {
-    private: getEnv('STRIPE_PRIVATE_KEY'),
-    public: getEnv('STRIPE_PUBLIC_KEY'),
-    endpointSecret: getEnv('STRIPE_ENDPOINT_SECRET')
+    private: STRIPE_PRIVATE_KEY,
+    public: STRIPE_PUBLIC_KEY,
+    endpointSecret: STRIPE_ENDPOINT_SECRET
 }
 
-const buoyServiceUrl = new URL(getEnv('BUOY_SERVICE_URL', 'https://cb.anchor.link'))
+const buoyServiceUrl = new URL(BUOY_SERVICE_URL || 'https://cb.anchor.link')
 
 /** Public facing url for the service stripe will redirect back to. */
-const publicUrl = new URL(getEnv('PUBLIC_URL', 'http://localhost:3000'))
+const publicUrl = new URL(PUBLIC_URL || 'http://localhost:3000')
 
 // disabled because sveltekit adapter tries to execute code during build
 if (!keys.private || !keys.public || !keys.endpointSecret) {
@@ -41,6 +43,7 @@ export async function listProducts(): Promise<Stripe.Product[]> {
 }
 
 export async function getProduct(productId: string) {
+    const products = await listProducts()
     const product = await client.products.retrieve(productId)
     if (!product.active || !product.metadata.sextant_id) {
         throw new Error('Product not found')

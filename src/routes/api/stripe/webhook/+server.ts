@@ -1,9 +1,9 @@
 /** Stripe Webhook. */
 
 import { json } from '@sveltejs/kit';
-import { getEnv } from '$lib/helpers';
 import { sendEmail } from '$lib/sendgrid';
 import { createTicket, SextantError } from '$lib/sextant';
+import { PUBLIC_URL } from '$env/static/public'
 import { webhookEvent } from '$lib/stripe';
 import type { RequestHandler } from '@sveltejs/kit';
 import Stripe from 'stripe';
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ request }) => {
     if (data.customer_details?.email && data.metadata?.request) {
       try {
         await sendEmail(data.customer_details.email, {
-          createurl: `${getEnv('PUBLIC_URL')}/activate/${data.metadata.request}`
+          createurl: `${PUBLIC_URL}/activate/${data.metadata.request}`
         });
         console.log('Email sent to:', data.customer_details.email);
       } catch (err) {

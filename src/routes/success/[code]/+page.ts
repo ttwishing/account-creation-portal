@@ -1,28 +1,28 @@
 import type { Load } from '@sveltejs/kit'
 import { redirect } from '@sveltejs/kit';
-import type { Ticket } from '$lib/types'
+import type { CreationCode } from '$lib/types'
 
 
-async function loadTicket(fetch: typeof window.fetch, payload: string) {
-    const res = await fetch(`/api/ticket/${payload}`)
+async function loadCreationCode(fetch: typeof window.fetch, code: string) {
+    const res = await fetch(`/api/code/${code}`)
     if (!res.ok && res.status !== 404) {
         throw res
     }
-    let ticket: Ticket | undefined
+    let creationCode: CreationCode | undefined
     if (res.status === 200) {
-        ticket = await res.json()
+        creationCode = await res.json()
     }
-    return ticket
+    return creationCode
 }
 
 export const load: Load = async ({ fetch, params }) => {
-    if (!params.id) {
+    if (!params.code) {
         return redirect(302, '/buy')
     }
-    const code = await loadTicket(fetch, params.id)
+    const creationCode = await loadCreationCode(fetch, params.code)
     return {
         props: {
-            code
+            creationCode
         }
     }
 }

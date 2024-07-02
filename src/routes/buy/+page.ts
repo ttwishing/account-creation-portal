@@ -1,9 +1,9 @@
 import { type Load } from "@sveltejs/kit";
 
-import { getProduct } from "$lib/sextant";
+export const load: Load = async ({ url, fetch }) => {
+    const response = await fetch(`/api/stripe/product`)
 
-export const load: Load = async ({ fetch, url }) => {
-    const product = await getProduct();
+    const stripeProduct = await response.json()
 
     const creationCode = url.searchParams.get('code');
     if (creationCode) {
@@ -14,8 +14,8 @@ export const load: Load = async ({ fetch, url }) => {
     }
 
     return {
-      product: product,
-      price: product.price,
+      product: stripeProduct,
+      price: stripeProduct.price,
       createRequestArguments: {
         login_scope: url.searchParams.get('scope'),
         return_path: url.searchParams.get('return_url'),

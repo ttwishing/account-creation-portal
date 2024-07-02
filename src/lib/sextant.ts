@@ -1,15 +1,12 @@
 /** Sextant API helpers, backend only. */
 
 import { Bytes, PrivateKey } from '@wharfkit/antelope'
-import { getEnv } from '$lib/helpers'
-import { SEXTANT_URL, SEXTANT_UUID} from '$env/static/public'
+import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 
-const sextantUrl = getEnv('SEXTANT_URL', 'http://localhost:8080')
-const sextantUUID = getEnv('SEXTANT_UUID', '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C')
-const sextantKey = PrivateKey.from(
-    getEnv('SEXTANT_KEY', 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
-)
+const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
+const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
+const sextantKey = PrivateKey.from( SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
 
 export class SextantError extends Error {
     code: number
@@ -91,19 +88,4 @@ export function createAccount(payload: CreateAccountRequest) {
         accountName: String(payload.accountName),
         code: payload.code
     })
-}
-
-export async function getProduct() {
-    console.log({ env: import.meta.env })
-    const productId = import.meta.env.SEXTANT_PRODUCT_ID;
-    if (!productId) {
-      throw Error('SEXTANT_PRODUCT_ID is not defined');
-    }
-
-    const res = await fetch(`/api/products/${productId}`);
-    if (!res.ok) {
-      throw Error(await res.text());
-    }
-
-    return res.json();
 }

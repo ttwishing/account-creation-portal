@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { writable, type Writable } from 'svelte/store';
-  import { verifyCreationCode } from '$lib/sextant';
 
   interface CreationCode {
     id: string;
@@ -16,7 +15,7 @@
   let timer: NodeJS.Timeout | undefined;
 
   function loadCreationCode(): Promise<CreationCode | undefined> {
-    return fetch(`/api/creation/${creationCode}`)
+    return fetch(`/api/code/${creationCode}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(res.statusText);
@@ -59,13 +58,7 @@
 
   onMount(() => {
     if (creationCode) {
-      verifyCreationCode(creationCode)
-        .then((code: CreationCode) => {
-          pollForCreationCode();
-        })
-        .catch((err: Error) => {
-          error.set(err);
-        });
+      pollForCreationCode();
 
       return () => {
         clearInterval(timer);
@@ -80,6 +73,8 @@
       setTimeout(() => copied.set(false), 2500);
     });
   }
+
+  $: console.log({ creationCode})
 </script>
 
 {#if creationCode}

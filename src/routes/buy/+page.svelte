@@ -26,7 +26,7 @@
       cancelPath: `/create?${data.pageQueryString}`
     });
 
-    const res = await fetch('/api/products/session', {
+    const res = await fetch('/api/stripe/session', {
       body,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
@@ -36,11 +36,12 @@
       throw new Error(await res.text());
     }
 
-    const result: { sessionId: string } = await res.json();
-    const stripe = await loadStripe(data.key);
+    const { session } = await res.json();
+
+    const stripe = await loadStripe(data.product.key);
 
     if (stripe) {
-      await stripe.redirectToCheckout({ sessionId: result.sessionId });
+      await stripe.redirectToCheckout({ sessionId: session.sessionId });
     }
   }
 

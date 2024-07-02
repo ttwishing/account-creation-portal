@@ -1,5 +1,4 @@
 import { redirect, type Load } from '@sveltejs/kit';
-import { getEnv } from '$lib/helpers';
 
 export const load: Load = async ({ url }) => {
     const code = url.searchParams.get('code');
@@ -7,8 +6,11 @@ export const load: Load = async ({ url }) => {
         throw redirect(302, '/buy');
     }
 
-    const productId = getEnv('VITE_SEXTANT_PRODUCT_ID');
+    const response = await fetch(`/api/stripe/product`)
+
+    const stripeProduct = await response.json()
+
     return {
-        props: { code, productId, pageQueryString: url.searchParams.toString() }
+        props: { code, productId: stripeProduct.id, pageQueryString: url.searchParams.toString() }
     };
 };
