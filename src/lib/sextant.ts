@@ -3,10 +3,13 @@
 import { Bytes, PrivateKey } from '@wharfkit/antelope'
 import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
+import { CreateRequest, type CreateRequestType } from '@greymass/account-creation'
 
 const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
-const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
+const sextantUUID = SEXTANT_UUID?.length ? SEXTANT_UUID : '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
 const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
+
+const accountCreatorVersion = 'antelope-onboarder ' + import.meta.env.PUBLIC_REV || 'dev'
 
 export class SextantError extends Error {
     code: number
@@ -22,12 +25,12 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
     const body = Bytes.from(JSON.stringify(data), 'utf8')
     const signature = sextantKey.signMessage(body)
 
-    console.log({ pk: String(sextantKey) })
+    console.log({ pk: String(sextantKey), public: String(sextantKey.toPublic()) })
 
     console.log('Calling Sextant API', sextantUrl + path, data)
 
     const response = await fetch(sextantUrl + path, {
-        body: body.array,
+        body: JSON.stringify(data),
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -36,11 +39,12 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
     })
 
     // Log the curl of the request
-    console.log(`curl -X POST -H "Content-Type: application/json" -H "X-Request-Sig: ${String(signature)}" -d '${JSON.stringify(data)}' ${sextantUrl + path}`)
-    if (response.status !== 200) {
+    console.log(`curl -X POST -H "Content-Type: application/json" -H "X-Request-Sig: ${String(signature)}" -d '${JSON.stringify(data)}' ${sextantUrl}${path}`)
+    if (response?.status !== 200) {
         let errorData: any
         try {
             errorData = await response.json()
+            console.log({errorData})
         } catch {
             throw new Error(`Unknown Sextant API error: ${response.status}`)
         }
@@ -63,28 +67,38 @@ export async function createTicket(code: string, productId: string, comment: str
     })
 }
 
-export async function verifyCreationCode(code: string) {
-    console.log('Verifying code', code)
+export async function verifyTicket(payload: CreateRequestType) {
+    const request = CreateRequest.from(payload)
     const ticket = await sextantApiCall('/tickets/verify', {
-        code,
+        code: request.code,
         deviceId: sextantUUID,
-        version: 'whalesplainer ' + (import.meta.env.PUBLIC_REV || 'dev')
+        version: accountCreatorVersion
     })
-
-    console.log({ ticket })
 
     return ticket
 }
 
-export function checkAccountName(productId: string, accountName: NameType) {
-    return sextantApiCall('/accounts/check', {
-        accountName: String(accountName),
-        productId,
-    })
+export async function checkAccountName(productId: string, accountName: NameType, ticket: string) {
+    console.log({ productId, accountName, ticket })
+    const createRequest = CreateRequest.from(ticket)
+
+    try {
+        await sextantApiCall('/tickets/check', {
+            name: String(accountName),
+            code: createRequest.code,
+            deviceId: sextantUUID,
+            productId,
+            version: accountCreatorVersion
+        })
+    } catch (error: unknown) {
+        return { nameAvailable: false }
+    }
+
+    return { nameAvailable: true }
 }
 
 export interface CreateAccountRequest {
-    code: string
+    ticket: string
     productId: string
     activeKey: PublicKeyType
     ownerKey: PublicKeyType
@@ -92,11 +106,17 @@ export interface CreateAccountRequest {
 }
 
 export function createAccount(payload: CreateAccountRequest) {
-    return sextantApiCall('/accounts/create', {
+    const { code } = CreateRequest.from(payload.ticket)
+
+    if (!code) {
+        throw new Error('Invalid ticket')
+    }
+
+    return sextantApiCall('/ticket/create', {
         productId: payload.productId,
         activeKey: String(payload.activeKey),
         ownerKey: String(payload.ownerKey),
         accountName: String(payload.accountName),
-        code: payload.code
+        code,
     })
 }

@@ -6,7 +6,7 @@ export interface Product {
     key: string
 }
 
-export interface CreationCode {
+export interface Ticket {
     name: string
     productId: string
     premium: string

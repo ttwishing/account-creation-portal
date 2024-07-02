@@ -1,8 +1,8 @@
 import { redirect, type Load } from '@sveltejs/kit';
 
-export const load: Load = async ({ url }) => {
-    const code = url.searchParams.get('code');
-    if (!code) {
+export const load: Load = async ({ url, fetch }) => {
+    const ticket = url.searchParams.get('ticket');
+    if (!ticket) {
         throw redirect(302, '/buy');
     }
 
@@ -11,6 +11,8 @@ export const load: Load = async ({ url }) => {
     const stripeProduct = await response.json()
 
     return {
-        props: { code, productId: stripeProduct.id, pageQueryString: url.searchParams.toString() }
+        ticket,
+        product: stripeProduct.product,
+        pageQueryString: url.searchParams.toString()
     };
 };

@@ -2,16 +2,13 @@ import { type Load } from "@sveltejs/kit";
 
 export const load: Load = async ({ url, fetch }) => {
     const response = await fetch(`/api/stripe/product`)
-
     const stripeProduct = await response.json()
-
-    console.log('stripeProduct', stripeProduct)
 
     const creationCode = url.searchParams.get('code');
     if (creationCode) {
       return {
         status: 301,
-        redirect: `accounts/create?code=${creationCode}&${url.searchParams}`
+        redirect: `/create?code=${creationCode}&${url.searchParams}`
       };
     }
 

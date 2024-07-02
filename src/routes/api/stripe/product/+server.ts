@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit'
-import { SextantError, verifyCreationCode } from '$lib/sextant'
+import { SextantError } from '$lib/sextant'
 import { getProduct } from '$lib/stripe'
 import { STRIPE_PRODUCT_ID } from '$env/static/private'
 

@@ -1,12 +1,20 @@
 <script lang="ts">
   import { writable, get } from 'svelte/store';
   import { goto } from '$app/navigation';
-  import { checkAccountName } from '$lib/sextant';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import type { Product } from '$lib/types';
 
-  export let code: string;
-  export let productId: string;
-  export let pageQueryString: string;
+  interface PageData {
+    code: string;
+    product: Product;
+    pageQueryString: string;
+  }
+  
+  export let data: PageData
+
+  let code = data.code;
+  let product = data.product;
+  let pageQueryString = data.pageQueryString;
 
   let accountName = writable('');
   let nameAvailable = writable<boolean | null>(null);
@@ -15,12 +23,15 @@
 
   let activeKey: string | null = null;
   let ownerKey: string | null = null;
+  let ticket: string | null = null;
   let keysMissing = writable(false);
+  let debounceTimeout: NodeJS.Timeout;
 
   onMount(() => {
     const searchParams = new URLSearchParams(pageQueryString);
-    activeKey = searchParams.get('activeKey');
-    ownerKey = searchParams.get('ownerKey');
+    activeKey = searchParams.get('active_key');
+    ownerKey = searchParams.get('owner_key');
+    ticket = searchParams.get('ticket');
 
     if (!activeKey || !ownerKey) {
       keysMissing.set(true);
@@ -33,13 +44,24 @@
     loading.set(true);
 
     try {
-      const result = await checkAccountName(productId, accountName);
+      const result = await fetch('/api/accounts/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ accountName: accountName + '.gm', productId: product.id, ticket }),
+      });
 
-      if (result && result.nameAvailable) {
+      if (!result.ok) {
+        throw new Error('Failed to check account name availability');
+      }
+
+      const { nameAvailable: availability } = await result.json();
+
+      if (availability) {
         nameAvailable.set(true);
       } else {
         nameAvailable.set(false);
-        error.set('This account name is not available');
       }
     } catch (err) {
       error.set('Error checking account name availability');
@@ -50,7 +72,13 @@
 
   function handleAccountNameInput(event: Event) {
     const target = event.target as HTMLInputElement;
-    accountName.set(target.value.trim().toLowerCase());
+    const name = target.value.trim().toLowerCase();
+    accountName.set(name);
+
+    clearTimeout(debounceTimeout);
+    debounceTimeout = setTimeout(() => {
+      checkAccountNameAvailability(name);
+    }, 500); // Adjust debounce delay as needed
   }
 
   async function handleConfirm() {
@@ -65,14 +93,14 @@
 
         const payload = {
           code,
-          productId,
+          productId: product.id,
           activeKey,
           ownerKey,
-          accountName: accountNameValue,
+          accountName: accountNameValue + '.gm',
         };
 
         try {
-          const response = await fetch('/api/create-account', {
+          const response = await fetch('/api/accounts/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -94,6 +122,8 @@
       }
     }
   }
+
+  $: console.log({ activeKey, ownerKey });
 </script>
 
 <h1 class="text-3xl font-bold mb-6">Create new account</h1>
@@ -104,13 +134,14 @@
 {:else}
   <p class="mb-4">Enter the desired EOS account name:</p>
 
-  <div class="mb-4">
+  <div class="mb-4 relative">
     <input
       type="text"
-      class="p-2 border rounded w-full"
+      class="p-2 border rounded w-full pr-20"
       on:input={handleAccountNameInput}
       placeholder="Enter account name"
     />
+    <span class="absolute right-2 top-2.5 text-gray-500">.gm</span>
     {#if $error}
       <p class="text-red-500 mt-2">{$error}</p>
     {/if}
