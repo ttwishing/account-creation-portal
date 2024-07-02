@@ -6,7 +6,7 @@ import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 
 const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
 const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
-const sextantKey = PrivateKey.from( SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
+const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
 
 export class SextantError extends Error {
     code: number
@@ -22,6 +22,10 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
     const body = Bytes.from(JSON.stringify(data), 'utf8')
     const signature = sextantKey.signMessage(body)
 
+    console.log({ pk: String(sextantKey) })
+
+    console.log('Calling Sextant API', sextantUrl + path, data)
+
     const response = await fetch(sextantUrl + path, {
         body: body.array,
         method: 'POST',
@@ -30,6 +34,9 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
             'X-Request-Sig': String(signature)
         }
     })
+
+    // Log the curl of the request
+    console.log(`curl -X POST -H "Content-Type: application/json" -H "X-Request-Sig: ${String(signature)}" -d '${JSON.stringify(data)}' ${sextantUrl + path}`)
     if (response.status !== 200) {
         let errorData: any
         try {
@@ -48,6 +55,7 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
 }
 
 export async function createTicket(code: string, productId: string, comment: string) {
+    console.log('Creating ticket', code, productId, comment)
     await sextantApiCall('/tickets/new', {
         code,
         productId,
@@ -56,11 +64,14 @@ export async function createTicket(code: string, productId: string, comment: str
 }
 
 export async function verifyCreationCode(code: string) {
+    console.log('Verifying code', code)
     const ticket = await sextantApiCall('/tickets/verify', {
         code,
         deviceId: sextantUUID,
         version: 'whalesplainer ' + (import.meta.env.PUBLIC_REV || 'dev')
     })
+
+    console.log({ ticket })
 
     return ticket
 }

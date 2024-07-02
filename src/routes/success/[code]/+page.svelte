@@ -73,8 +73,6 @@
       setTimeout(() => copied.set(false), 2500);
     });
   }
-
-  $: console.log({ creationCode})
 </script>
 
 {#if creationCode}

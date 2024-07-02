@@ -5,6 +5,8 @@ export const load: Load = async ({ url, fetch }) => {
 
     const stripeProduct = await response.json()
 
+    console.log('stripeProduct', stripeProduct)
+
     const creationCode = url.searchParams.get('code');
     if (creationCode) {
       return {

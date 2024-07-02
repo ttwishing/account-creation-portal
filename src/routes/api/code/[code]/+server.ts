@@ -3,12 +3,16 @@ import { SextantError, verifyCreationCode } from '$lib/sextant'
 
 export const GET: RequestHandler = async ({ params }) => {
     try {
+        console.log('params', params)
         if (!params.code) {
             return json({ error: 'Missing creation code' }, { status: 400 })
         }
         const result = await verifyCreationCode(params.code)
+
+        console.log({ result })
         return json(result, { status: 200 })
     } catch (error) {
+        console.error('Error getting creation code:', error)
         if (error instanceof SextantError && error.code === 404) {
             return json({ error: 'Ticket not found' }, { status: 404 })
         }

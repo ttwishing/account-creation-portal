@@ -1,64 +1,67 @@
-/** Stripe Webhook. */
+// The webhook is currently disabled because the Whalesplainer service is handling the token creation and email sending.
+// If the Whalesplainer service is replaced by this new service, then this webhook will need to be enabled and the code below will need to be uncommented.
 
-import { json } from '@sveltejs/kit';
-import { sendEmail } from '$lib/sendgrid';
-import { createTicket, SextantError } from '$lib/sextant';
-import { PUBLIC_URL } from '$env/static/public'
-import { webhookEvent } from '$lib/stripe';
-import type { RequestHandler } from '@sveltejs/kit';
-import Stripe from 'stripe';
+// /** Stripe Webhook. */
 
-// POST /webhook
-export const POST: RequestHandler = async ({ request }) => {
-  let event: Stripe.Event;
+// import { json } from '@sveltejs/kit';
+// import { sendEmail } from '$lib/sendgrid';
+// import { createTicket, SextantError } from '$lib/sextant';
+// import { PUBLIC_URL } from '$env/static/public'
+// import { webhookEvent } from '$lib/stripe';
+// import type { RequestHandler } from '@sveltejs/kit';
+// import Stripe from 'stripe';
 
-  try {
-    event = await webhookEvent(request);
-  } catch (err) {
-    console.log('Invalid stripe event', err);
-    return json({ error: 'Invalid stripe event' }, { status: 400 });
-  }
+// // POST /webhook
+// export const POST: RequestHandler = async ({ request }) => {
+//   let event: Stripe.Event;
 
-  if (event.type === 'checkout.session.completed') {
-    const data = event.data.object as Stripe.Checkout.Session;
+//   try {
+//     event = await webhookEvent(request);
+//   } catch (err) {
+//     console.log('Invalid stripe event', err);
+//     return json({ error: 'Invalid stripe event' }, { status: 400 });
+//   }
 
-    if (data.payment_status === 'unpaid') {
-      return json({ error: 'Not paid' }, { status: 400 });
-    }
+//   if (event.type === 'checkout.session.completed') {
+//     const data = event.data.object as Stripe.Checkout.Session;
 
-    const code = data.metadata?.code;
-    if (typeof code !== 'string' || code.length < 10) {
-      return json({ error: 'Invalid code' }, { status: 400 });
-    }
+//     if (data.payment_status === 'unpaid') {
+//       return json({ error: 'Not paid' }, { status: 400 });
+//     }
 
-    const sextantId = data.metadata?.sextantId;
-    if (typeof sextantId !== 'string') {
-      return json({ error: 'Missing sextant id' }, { status: 400 });
-    }
+//     const code = data.metadata?.code;
+//     if (typeof code !== 'string' || code.length < 10) {
+//       return json({ error: 'Invalid code' }, { status: 400 });
+//     }
 
-    try {
-      await createTicket(code, sextantId, `stripe ${data.id}`);
-      console.log(`Created ticket for ${data.id}`);
-    } catch (err) {
-      if (err instanceof SextantError && err.reason === 'Ticket code exists') {
-        console.log('WARN: Ticket code already existed in sextant (re-delivery?)');
-      } else {
-        console.error('Error creating ticket:', err);
-        return json({ error: 'Internal Server Error' }, { status: 500 });
-      }
-    }
+//     const sextantId = data.metadata?.sextantId;
+//     if (typeof sextantId !== 'string') {
+//       return json({ error: 'Missing sextant id' }, { status: 400 });
+//     }
 
-    if (data.customer_details?.email && data.metadata?.request) {
-      try {
-        await sendEmail(data.customer_details.email, {
-          createurl: `${PUBLIC_URL}/activate/${data.metadata.request}`
-        });
-        console.log('Email sent to:', data.customer_details.email);
-      } catch (err) {
-        console.error('Failed to send email', err);
-      }
-    }
-  }
+//     try {
+//       await createTicket(code, sextantId, `stripe ${data.id}`);
+//       console.log(`Created ticket for ${data.id}`);
+//     } catch (err) {
+//       if (err instanceof SextantError && err.reason === 'Ticket code exists') {
+//         console.log('WARN: Ticket code already existed in sextant (re-delivery?)');
+//       } else {
+//         console.error('Error creating ticket:', err);
+//         return json({ error: 'Internal Server Error' }, { status: 500 });
+//       }
+//     }
 
-  return json('Ok', { status: 200 });
-};
+//     if (data.customer_details?.email && data.metadata?.request) {
+//       try {
+//         await sendEmail(data.customer_details.email, {
+//           createurl: `${PUBLIC_URL}/activate/${data.metadata.request}`
+//         });
+//         console.log('Email sent to:', data.customer_details.email);
+//       } catch (err) {
+//         console.error('Failed to send email', err);
+//       }
+//     }
+//   }
+
+//   return json('Ok', { status: 200 });
+// };
