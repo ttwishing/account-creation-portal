@@ -9,7 +9,7 @@ const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
 const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
 const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
 
-const accountCreatorVersion = ACCOUNT_CREATOR_VERSION || 'antelope-onboarder'
+const accountCreatorVersion = ACCOUNT_CREATOR_VERSION || 'account-creation-portal'
 
 export class SextantError extends Error {
     code: number
