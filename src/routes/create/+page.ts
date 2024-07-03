@@ -30,8 +30,6 @@ export const load: Load = async ({ url, fetch }) => {
         throw redirect(302, '/buy');
     }
 
-    console.log({ticketData });
-
     if (!ticketData || !url.searchParams.get('owner_key') || !url.searchParams.get('active_key')) {
         console.error('Missing keys so redirecting to buy page');
         throw redirect(302, '/buy');

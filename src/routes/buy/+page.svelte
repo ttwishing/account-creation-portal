@@ -11,6 +11,7 @@
     stripeProduct: StripeProduct;
     createRequestArguments: CreateRequestArguments;
     pageQueryString: string;
+    searchParams: string;
   }
 
   export let data: PageData;
@@ -21,7 +22,7 @@
     const body = JSON.stringify({
       ...data.createRequestArguments,
       id: data.stripeProduct.price.id,
-      cancelPath: `/create?${data.pageQueryString}`
+      searchParams: data.searchParams,
     });
 
     const res = await fetch('/api/stripe/session', {
@@ -29,6 +30,7 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' }
     });
+
 
     if (!res.ok) {
       throw new Error(await res.text());

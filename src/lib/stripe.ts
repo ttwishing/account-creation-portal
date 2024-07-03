@@ -59,7 +59,7 @@ export async function getProduct(productId: string) {
 export async function createSession(
     priceId: string,
     createRequestArguments: CreateRequestArguments,
-    cancelPath: string
+    searchParams: string,
 ) {
     const price = await client.prices.retrieve(priceId, { expand: ['product'] })
     if (!price) {
@@ -74,7 +74,7 @@ export async function createSession(
     const codeHash = Checksum256.hash(Bytes.from(code, 'utf8')).hexString
     const loginUrl = `${buoyServiceUrl.origin}/${codeHash}`
 
-    const request = CreateRequest.from({
+    const createRequest = CreateRequest.from({
         ...createRequestArguments,
         code,
         login_url: loginUrl,
@@ -83,10 +83,10 @@ export async function createSession(
     const session = await client.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
-        success_url: `${publicUrl.origin}/success/${request}`,
-        cancel_url: `${publicUrl.origin}${cancelPath || ''}`,
+        success_url: `${publicUrl.origin}/success/${createRequest || ''}?${searchParams}`,
+        cancel_url: `${publicUrl.origin}/buy?${searchParams}`,
         payment_intent_data: {
-            metadata: { code, request, sextantId }
+            metadata: { code, request: createRequest, sextantId }
         },
         line_items: [
             {
@@ -94,7 +94,7 @@ export async function createSession(
                 quantity: 1
             }
         ],
-        metadata: { code, request, sextantId }
+        metadata: { code, request: createRequest, sextantId }
     })
     return {
         sessionId: session.id,

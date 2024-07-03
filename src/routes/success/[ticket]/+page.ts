@@ -30,9 +30,8 @@ export const load: Load = async ({ fetch, params, url }) => {
         } else {
             redirect(302, `${PUBLIC_WHALESPLAINER_URL}/activate/${params.ticket}`)
         }
-
     }
-    console.log('ticket', ticketData)
+
     return {
         ticket: params.ticket,
         ticketData,

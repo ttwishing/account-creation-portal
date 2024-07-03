@@ -52,7 +52,6 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
 }
 
 export async function createTicket(code: string, productId: string, comment: string) {
-    console.log('Creating ticket', code, productId, comment)
     await sextantApiCall('/tickets/new', {
         code,
         productId,
