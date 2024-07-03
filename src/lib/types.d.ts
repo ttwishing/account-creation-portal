@@ -6,6 +6,18 @@ export interface Product {
     key: string
 }
 
+export interface Price {
+    id: string
+    unit_amount: number
+    currency: string
+}
+
+export interface StripeProduct {
+    product: Product
+    price: Price
+    key: string
+}
+
 export interface Ticket {
     name: string
     productId: string

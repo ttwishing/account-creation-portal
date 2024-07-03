@@ -1,15 +1,15 @@
 /** Sextant API helpers, backend only. */
 
 import { Bytes, PrivateKey } from '@wharfkit/antelope'
-import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY } from '$env/static/private'
+import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 import { CreateRequest, type CreateRequestType } from '@greymass/account-creation'
 
 const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
-const sextantUUID = SEXTANT_UUID?.length ? SEXTANT_UUID : '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
+const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
 const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
 
-const accountCreatorVersion = 'antelope-onboarder ' + import.meta.env.PUBLIC_REV || 'dev'
+const accountCreatorVersion = ACCOUNT_CREATOR_VERSION || 'antelope-onboarder'
 
 export class SextantError extends Error {
     code: number
@@ -25,10 +25,6 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
     const body = Bytes.from(JSON.stringify(data), 'utf8')
     const signature = sextantKey.signMessage(body)
 
-    console.log({ pk: String(sextantKey), public: String(sextantKey.toPublic()) })
-
-    console.log('Calling Sextant API', sextantUrl + path, data)
-
     const response = await fetch(sextantUrl + path, {
         body: JSON.stringify(data),
         method: 'POST',
@@ -38,13 +34,10 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
         }
     })
 
-    // Log the curl of the request
-    console.log(`curl -X POST -H "Content-Type: application/json" -H "X-Request-Sig: ${String(signature)}" -d '${JSON.stringify(data)}' ${sextantUrl}${path}`)
     if (response?.status !== 200) {
         let errorData: any
         try {
             errorData = await response.json()
-            console.log({errorData})
         } catch {
             throw new Error(`Unknown Sextant API error: ${response.status}`)
         }
@@ -79,7 +72,6 @@ export async function verifyTicket(payload: CreateRequestType) {
 }
 
 export async function checkAccountName(productId: string, accountName: NameType, ticket: string) {
-    console.log({ productId, accountName, ticket })
     const createRequest = CreateRequest.from(ticket)
 
     try {
@@ -112,11 +104,13 @@ export function createAccount(payload: CreateAccountRequest) {
         throw new Error('Invalid ticket')
     }
 
-    return sextantApiCall('/ticket/create', {
+    return sextantApiCall('/tickets/create', {
         productId: payload.productId,
         activeKey: String(payload.activeKey),
         ownerKey: String(payload.ownerKey),
         accountName: String(payload.accountName),
+        deviceId: sextantUUID,
+        version: accountCreatorVersion,
         code,
     })
 }

@@ -44,7 +44,6 @@ export async function listProducts(): Promise<Stripe.Product[]> {
 
 export async function getProduct(productId: string) {
     const products = await listProducts()
-    console.log({products})
     const product = await client.products.retrieve(productId)
     if (!product.active || !product.metadata.sextant_id) {
         throw new Error('Product not found')

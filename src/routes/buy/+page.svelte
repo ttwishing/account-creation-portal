@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Product } from '$lib/types';
-	import { loadStripe } from '@stripe/stripe-js';
+  import type { StripeProduct } from '$lib/types';
+  import { loadStripe } from '@stripe/stripe-js';
 
   interface CreateRequestArguments {
     login_scope: string | null;
@@ -8,9 +8,7 @@
   }
 
   interface PageData {
-    product: Product;
-    price: { id: string };
-    key: string;
+    stripeProduct: StripeProduct;
     createRequestArguments: CreateRequestArguments;
     pageQueryString: string;
   }
@@ -22,7 +20,7 @@
   async function buy(): Promise<void> {
     const body = JSON.stringify({
       ...data.createRequestArguments,
-      id: data.price.id,
+      id: data.stripeProduct.price.id,
       cancelPath: `/create?${data.pageQueryString}`
     });
 
@@ -38,7 +36,7 @@
 
     const { session } = await res.json();
 
-    const stripe = await loadStripe(data.product.key);
+    const stripe = await loadStripe(data.stripeProduct.key);
 
     if (stripe) {
       await stripe.redirectToCheckout({ sessionId: session.sessionId });
@@ -51,15 +49,22 @@
     buy()
       .catch((err: Error) => {
         buyError = err.message;
-      })
+      });
+  }
+
+  function formatPrice(amount: number, currency = 'USD'): string {
+    return (amount / 100).toLocaleString('en-US', { style: 'currency', currency });
   }
 </script>
 
 <div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-4">Create new account</h1>
-  <p class="mb-4">Review {data.product.name} price</p>
-  <button class="w-full mt-4" on:click={handleBuy}>
-    Continue to payment &rarr;
+  <h1 class="text-3xl font-bold mb-4">Create New Account</h1>
+  <p class="mb-4">Create a {data.stripeProduct.product.name} for {formatPrice(data.stripeProduct.price.unit_amount, data.stripeProduct.price.currency)}</p>
+  <button
+    class="w-full mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+    on:click={handleBuy}
+  >
+    Continue to Payment &rarr;
   </button>
   <noscript>
     <p class="mt-4 text-red-600">

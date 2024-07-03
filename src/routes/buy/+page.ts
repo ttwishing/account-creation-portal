@@ -13,8 +13,7 @@ export const load: Load = async ({ url, fetch }) => {
     }
 
     return {
-      product: stripeProduct,
-      price: stripeProduct.price,
+      stripeProduct: stripeProduct,
       createRequestArguments: {
         login_scope: url.searchParams.get('scope'),
         return_path: url.searchParams.get('return_url'),

@@ -3,7 +3,6 @@ import { SextantError, verifyTicket } from '$lib/sextant'
 
 export const GET: RequestHandler = async ({ params }) => {
     try {
-        console.log('params', params)
         if (!params.ticket) {
             return json({ error: 'Missing creation code' }, { status: 400 })
         }
