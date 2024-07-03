@@ -1,9 +1,9 @@
-import { type Load } from "@sveltejs/kit";
+import { type ServerLoad } from "@sveltejs/kit";
 
-export const load: Load = async ({ url, fetch }) => {
+export const load: ServerLoad = async ({ url, fetch, locals }) => {
     const response = await fetch(`/api/stripe/product`)
     const stripeProduct = await response.json()
-    const creationCode = url.searchParams.get('code');
+    const creationCode = url.searchParams.get('ticket');
 
     if (creationCode) {
       return {
@@ -12,6 +12,8 @@ export const load: Load = async ({ url, fetch }) => {
       };
     }
 
+    const session = await locals.auth()
+
     return {
       stripeProduct: stripeProduct,
       createRequestArguments: {
@@ -19,5 +21,6 @@ export const load: Load = async ({ url, fetch }) => {
         return_path: url.searchParams.get('return_url'),
       },
       searchParams: String(url.searchParams),
+      session,
     };
   };
