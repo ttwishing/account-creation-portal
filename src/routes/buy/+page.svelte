@@ -3,6 +3,8 @@
   import { loadStripe } from '@stripe/stripe-js';
   import { signIn } from "@auth/sveltekit/client"
 	import type { Session } from '@auth/sveltekit';
+	import { writable } from 'svelte/store';
+	import { onMount } from 'svelte';
 
   interface CreateRequestArguments {
     login_scope: string | null;
@@ -17,6 +19,15 @@
   }
 
   export let data: PageData;
+
+  const canRedeemAccount = writable(false);
+
+  onMount(() => {
+    if (data.session) {
+      // We need to also check if the user has already redeemed an account, maybe by doing a call to /api/account/redeemed?
+      canRedeemAccount.set(true);
+    }
+  });
 
   let buyError: string | undefined;
 
@@ -70,7 +81,7 @@
     Continue to Payment &rarr;
   </button>
   <hr />
-  {#if data.session}
+  {#if $canRedeemAccount}
     <p class="mt-4">You are currently signed in as {data.session.user?.name}</p>
     <form method="POST" action="/ticket">
       <input type="hidden" name="searchParams" value={data.searchParams} />

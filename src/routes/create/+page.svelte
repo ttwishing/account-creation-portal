@@ -126,8 +126,6 @@
 </script>
 
 <div class="container mx-auto max-w-md p-4">
-  <h1 class="text-3xl font-bold mb-6">Create New Account</h1>
-
   {#if $keysMissing}
     <p class="mb-4">To create an account using Anchor, please provide the following code:</p>
     <pre class="bg-gray-200 p-4 rounded">{code}</pre>
@@ -140,6 +138,8 @@
       <p class="mb-4">Your account was created successfully. You can now use this account on the wallet that generated the private keys.</p>
     </div>
   {:else}
+    <h1 class="text-3xl font-bold mb-6">Create New Account</h1>
+
     <p class="mb-4">Enter the desired EOS account name:</p>
 
     <div class="mb-4 relative">
