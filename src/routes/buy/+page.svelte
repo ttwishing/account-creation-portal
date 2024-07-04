@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { StripeProduct } from '$lib/types';
   import { loadStripe } from '@stripe/stripe-js';
+  import { signIn } from "@auth/sveltekit/client"
+	import type { Session } from '@auth/sveltekit';
 
   interface CreateRequestArguments {
     login_scope: string | null;
@@ -10,8 +12,8 @@
   interface PageData {
     stripeProduct: StripeProduct;
     createRequestArguments: CreateRequestArguments;
-    pageQueryString: string;
     searchParams: string;
+    session: Session
   }
 
   export let data: PageData;
@@ -31,17 +33,16 @@
       headers: { 'Content-Type': 'application/json' }
     });
 
-
     if (!res.ok) {
       throw new Error(await res.text());
     }
 
-    const { session } = await res.json();
+    const { session: stripeSession } = await res.json();
 
     const stripe = await loadStripe(data.stripeProduct.key);
 
     if (stripe) {
-      await stripe.redirectToCheckout({ sessionId: session.sessionId });
+      await stripe.redirectToCheckout({ sessionId: stripeSession.sessionId });
     }
   }
 
@@ -68,6 +69,29 @@
   >
     Continue to Payment &rarr;
   </button>
+  <hr />
+  {#if data.session}
+    <p class="mt-4">You are currently signed in as {data.session.user?.name}</p>
+    <form method="POST" action="/ticket">
+      <input type="hidden" name="searchParams" value={data.searchParams} />
+      <button
+        class="w-full mt-4 p-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300"
+        type="submit"
+      >
+        Redeem Free Account
+      </button>
+    </form>
+  {:else}
+    <p class="block mt-4 text-sm text-gray-600">Or sign in with:</p>
+    <button
+      on:click={() => signIn("google", { callbackUrl: `/buy?${data.searchParams}`})}
+      class="w-full mt-4 p-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-300 text-center"
+    >
+      Sign in with Google
+    </button>
+  {/if}
+  
+  
   <noscript>
     <p class="mt-4 text-red-600">
       Sorry, our payment processor Stripe requires JavaScript to be enabled to function.

@@ -42,6 +42,6 @@ export const load: Load = async ({ url, fetch }) => {
     return {
         ticket,
         product: stripeProduct.product,
-        pageQueryString: url.searchParams.toString()
+        searchParams: url.searchParams.toString()
     };
 };

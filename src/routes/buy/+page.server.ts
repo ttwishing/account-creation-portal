@@ -1,15 +1,12 @@
-import { type ServerLoad } from "@sveltejs/kit";
+import { type ServerLoad, redirect } from "@sveltejs/kit";
 
 export const load: ServerLoad = async ({ url, fetch, locals }) => {
     const response = await fetch(`/api/stripe/product`)
     const stripeProduct = await response.json()
-    const creationCode = url.searchParams.get('ticket');
+    const creationTicket = url.searchParams.get('ticket');
 
-    if (creationCode) {
-      return {
-        status: 301,
-        redirect: `/create?code=${creationCode}&${url.searchParams}`
-      };
+    if (creationTicket) {
+      throw  redirect(302, `/create?ticket=${creationTicket}&${url.searchParams}`)
     }
 
     const session = await locals.auth()

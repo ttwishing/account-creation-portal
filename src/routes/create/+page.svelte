@@ -6,14 +6,14 @@
   interface PageData {
     code: string;
     product: Product;
-    pageQueryString: string;
+    searchParams: string;
   }
 
   export let data: PageData;
 
   let code = data.code;
   let product = data.product;
-  let pageQueryString = data.pageQueryString;
+  let searchParamsString = data.searchParams;
 
   let accountName = writable('');
   let nameAvailable = writable<boolean | null>(null);
@@ -29,7 +29,7 @@
   let debounceTimeout: NodeJS.Timeout;
 
   onMount(() => {
-    const searchParams = new URLSearchParams(pageQueryString);
+    const searchParams = new URLSearchParams(searchParamsString);
     activeKey = searchParams.get('active_key');
     ownerKey = searchParams.get('owner_key');
     ticket = searchParams.get('ticket');

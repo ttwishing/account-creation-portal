@@ -1,15 +1,18 @@
 /** Sextant API helpers, backend only. */
 
-import { Bytes, PrivateKey } from '@wharfkit/antelope'
-import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION } from '$env/static/private'
+import { Bytes, Checksum256, PrivateKey } from '@wharfkit/antelope'
+import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION, BUOY_SERVICE_URL, STRIPE_PRODUCT_ID } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
-import { CreateRequest, type CreateRequestType } from '@greymass/account-creation'
+import { CreateRequest, type CreateRequestArguments, type CreateRequestType } from '@greymass/account-creation'
+import { randomCode } from './helpers'
+import { getProduct } from './stripe'
 
 const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
 const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
 const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
-
+const buoyServiceUrl = new URL(BUOY_SERVICE_URL || 'https://cb.anchor.link')
 const accountCreatorVersion = ACCOUNT_CREATOR_VERSION || 'account-creation-portal'
+const stripeProductId = STRIPE_PRODUCT_ID
 
 export class SextantError extends Error {
     code: number
@@ -51,11 +54,12 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
     }
 }
 
-export async function createTicket(code: string, productId: string, comment: string) {
+export async function createTicket(code: string, productId: string, comment: string, email?: string) {
     await sextantApiCall('/tickets/new', {
         code,
         productId,
-        comment
+        comment,
+        email,
     })
 }
 
@@ -112,4 +116,22 @@ export function createAccount(payload: CreateAccountRequest) {
         version: accountCreatorVersion,
         code,
     })
+}
+
+export function generateCreationRequest(createRequestArguments: Partial<CreateRequestArguments> = {}) {
+    const code = randomCode()
+    const codeHash = Checksum256.hash(Bytes.from(code, 'utf8')).hexString
+    const loginUrl = `${buoyServiceUrl.origin}/${codeHash}`
+
+    return CreateRequest.from({
+        ...createRequestArguments,
+        code,
+        login_url: loginUrl,
+    })
+}
+
+export async function getSextantProductId() {
+    const stripeProduct = await getProduct(stripeProductId)
+
+    return stripeProduct.product.metadata.sextant_id
 }

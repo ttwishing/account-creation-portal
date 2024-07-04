@@ -1,6 +1,6 @@
 import type { HandleServerError } from '@sveltejs/kit';
 
-export { handle } from "../auth"
+export { handle } from "./auth"
 
 export const handleError: HandleServerError = ({ error, event }) => {
   // Log the error for server-side tracking
