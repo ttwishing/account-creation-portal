@@ -1,7 +1,7 @@
 /** Sextant API helpers, backend only. */
 
 import { Bytes, Checksum256, PrivateKey } from '@wharfkit/antelope'
-import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION, BUOY_SERVICE_URL, STRIPE_PRODUCT_ID } from '$env/static/private'
+import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION, BUOY_SERVICE_URL, STRIPE_PRODUCT_ID, SEXTANT_PRODUCT_ID } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 import { CreateRequest, type CreateRequestArguments, type CreateRequestType } from '@greymass/account-creation'
 import { randomCode } from './helpers'
@@ -92,6 +92,19 @@ export async function checkAccountName(productId: string, accountName: NameType,
     return { nameAvailable: true }
 }
 
+export async function freeAccountAvailable(email: string) {
+    try {
+        await sextantApiCall('/tickets/free', {
+            email
+        })
+
+        return true
+    }
+    catch (error: unknown) {
+        return false
+    }
+}
+
 export interface CreateAccountRequest {
     ticket: string
     productId: string
@@ -131,6 +144,9 @@ export function generateCreationRequest(createRequestArguments: Partial<CreateRe
 }
 
 export async function getSextantProductId() {
+    if (SEXTANT_PRODUCT_ID) {
+        return SEXTANT_PRODUCT_ID
+    }
     const stripeProduct = await getProduct(stripeProductId)
 
     return stripeProduct.product.metadata.sextant_id

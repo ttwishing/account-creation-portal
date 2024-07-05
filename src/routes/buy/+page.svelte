@@ -4,7 +4,6 @@
   import { signIn } from "@auth/sveltekit/client"
 	import type { Session } from '@auth/sveltekit';
 	import { writable } from 'svelte/store';
-	import { onMount } from 'svelte';
 
   interface CreateRequestArguments {
     login_scope: string | null;
@@ -16,18 +15,10 @@
     createRequestArguments: CreateRequestArguments;
     searchParams: string;
     session: Session
+    canGetFreeAccount: boolean;
   }
 
   export let data: PageData;
-
-  const canRedeemAccount = writable(false);
-
-  onMount(() => {
-    if (data.session) {
-      // We need to also check if the user has already redeemed an account, maybe by doing a call to /api/account/redeemed?
-      canRedeemAccount.set(true);
-    }
-  });
 
   let buyError: string | undefined;
 
@@ -81,7 +72,7 @@
     Continue to Payment &rarr;
   </button>
   <hr />
-  {#if $canRedeemAccount}
+  {#if data.canGetFreeAccount}
     <p class="mt-4">You are currently signed in as {data.session.user?.name}</p>
     <form method="POST" action="/ticket">
       <input type="hidden" name="searchParams" value={data.searchParams} />
@@ -89,10 +80,10 @@
         class="w-full mt-4 p-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300"
         type="submit"
       >
-        Redeem Free Account
+        Get Free Account
       </button>
     </form>
-  {:else}
+  {:else if !data.session.user}
     <p class="block mt-4 text-sm text-gray-600">Or sign in with:</p>
     <button
       on:click={() => signIn("google", { callbackUrl: `/buy?${data.searchParams}`})}

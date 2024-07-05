@@ -1,4 +1,5 @@
 import { type ServerLoad, redirect } from "@sveltejs/kit";
+import { freeAccountAvailable } from "$lib/sextant";
 
 export const load: ServerLoad = async ({ url, fetch, locals }) => {
     const response = await fetch(`/api/stripe/product`)
@@ -11,6 +12,12 @@ export const load: ServerLoad = async ({ url, fetch, locals }) => {
 
     const session = await locals.auth()
 
+    let canGetFreeAccount = false
+
+    if (session?.user?.email) {
+      canGetFreeAccount = await freeAccountAvailable(session.user.email)
+    }
+
     return {
       stripeProduct: stripeProduct,
       createRequestArguments: {
@@ -19,5 +26,6 @@ export const load: ServerLoad = async ({ url, fetch, locals }) => {
       },
       searchParams: String(url.searchParams),
       session,
+      canGetFreeAccount,
     };
   };
