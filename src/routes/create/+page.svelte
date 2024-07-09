@@ -2,6 +2,7 @@
   import { writable, get } from 'svelte/store';
   import { onMount } from 'svelte';
   import type { Product } from '$lib/types';
+  import { Name } from '@wharfkit/antelope';
 
   interface PageData {
     code: string;
@@ -110,13 +111,27 @@
 
           if (response.ok) {
             console.log('Account created successfully', result);
-
             accountCreated.set(true);
+
+            // Send message to parent window
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'account_created',
+                data: {
+                  accountName: Name.from(accountNameValue + '.gm'),
+                  activeKey,
+                  ownerKey,
+                }
+              }, '*');
+            }
+
           } else {
             console.error('Failed to create account', result);
+            error.set('Failed to create account: ' + (result.error || 'Unknown error'));
           }
-        } catch (error) {
-          console.error('Error creating account', error);
+        } catch (err: unknown) {
+          console.error('Error creating account', err);
+          error.set('Error creating account: ' + ((err as { message: string }).message || 'Unknown error'));
         } finally {
           creatingAccount.set(false);
         }
