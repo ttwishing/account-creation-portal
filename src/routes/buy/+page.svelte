@@ -91,8 +91,13 @@
     >
       Sign in with Google
     </button>
+    <button
+      on:click={() => signIn("apple", { callbackUrl: `/buy?${data.searchParams}`})}
+      class="w-full mt-2 p-2 bg-black text-white rounded hover:bg-gray-800 transition duration-300 text-center"
+    >
+      Sign in with Apple
+    </button>
   {/if}
-  
   
   <noscript>
     <p class="mt-4 text-red-600">
