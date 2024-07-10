@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { StripeProduct } from '$lib/types';
   import { loadStripe } from '@stripe/stripe-js';
-  import { signIn } from "@auth/sveltekit/client"
-	import type { Session } from '@auth/sveltekit';
-	import { writable } from 'svelte/store';
+  import { signIn, signOut } from "@auth/sveltekit/client"
+  import type { Session } from '@auth/sveltekit';
+  import GoogleLogo from '../../assets/google-logo.svg';
+  import AppleLogo from '../../assets/apple-logo.svg';
 
   interface CreateRequestArguments {
     login_scope: string | null;
@@ -14,7 +15,7 @@
     stripeProduct: StripeProduct;
     createRequestArguments: CreateRequestArguments;
     searchParams: string;
-    session: Session
+    session: Session | null | undefined;
     canGetFreeAccount: boolean;
   }
 
@@ -60,52 +61,112 @@
   function formatPrice(amount: number, currency = 'USD'): string {
     return (amount / 100).toLocaleString('en-US', { style: 'currency', currency });
   }
+
+  function handleLogout() {
+    signOut({ callbackUrl: '/buy' });
+  }
 </script>
 
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-4 py-8 space-y-4">
   <h1 class="text-3xl font-bold mb-4">Create New Account</h1>
-  <p class="mb-4">Create a {data.stripeProduct.product.name} for {formatPrice(data.stripeProduct.price.unit_amount, data.stripeProduct.price.currency)}</p>
-  <button
-    class="w-full mt-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
-    on:click={handleBuy}
-  >
-    Continue to Payment &rarr;
-  </button>
-  <hr />
-  {#if data.canGetFreeAccount}
-    <p class="mt-4">You are currently signed in as {data.session.user?.name}</p>
-    <form method="POST" action="/ticket">
-      <input type="hidden" name="searchParams" value={data.searchParams} />
-      <button
-        class="w-full mt-4 p-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300"
-        type="submit"
+  
+  {#if data.session === undefined}
+    <div class="bg-gray-100 border border-gray-300 rounded-lg p-6 mb-4">
+      <h3 class="text-xl font-semibold mb-2">Checking Login Status</h3>
+      <p>Please wait while we verify your login status...</p>
+    </div>
+  {:else if data.session}
+    <div class="bg-white shadow rounded-lg p-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="text-xl font-semibold">Logged in as {data.session.user?.name}</h3>
+          <p class="text-sm text-gray-600">{data.session.user?.email}</p>
+        </div>
+        <button 
+          on:click={handleLogout}
+          class="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
+        >
+          Logout
+        </button>
+      </div>
+    </div>
+
+    {#if data.canGetFreeAccount}
+      <div class="bg-green-100 border border-green-400 rounded-lg p-6 mb-4">
+        <h3 class="text-xl font-semibold mb-2">Free Account Available!</h3>
+        <p class="mb-4">Great news! You're eligible for a free account.</p>
+        <form method="POST" action="/ticket">
+          <input type="hidden" name="searchParams" value={data.searchParams} />
+          <button 
+            type="submit"
+            class="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-300"
+          >
+            Get Free Account
+          </button>
+        </form>
+      </div>
+    {:else}
+      <div class="bg-yellow-100 border border-yellow-400 rounded-lg p-6 mb-4">
+        <h3 class="text-xl font-semibold mb-2">Free Account Not Available</h3>
+        <p>You've already received your free account. To create additional accounts, please proceed with the purchase below.</p>
+      </div>
+    {/if}
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Purchase Details</h3>
+      <p class="mb-4">Create a {data.stripeProduct.product.name} for {formatPrice(data.stripeProduct.price.unit_amount, data.stripeProduct.price.currency)}</p>
+      <button 
+        on:click={handleBuy}
+        class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
       >
-        Get Free Account
+        Continue to Payment &rarr;
       </button>
-    </form>
-  {:else if !data.session.user}
-    <p class="block mt-4 text-sm text-gray-600">Or sign in with:</p>
-    <button
-      on:click={() => signIn("google", { callbackUrl: `/buy?${data.searchParams}`})}
-      class="w-full mt-4 p-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-300 text-center"
-    >
-      Sign in with Google
-    </button>
-    <button
-      on:click={() => signIn("apple", { callbackUrl: `/buy?${data.searchParams}`})}
-      class="w-full mt-2 p-2 bg-black text-white rounded hover:bg-gray-800 transition duration-300 text-center"
-    >
-      Sign in with Apple
-    </button>
+    </div>
+  {:else}
+    <div class="bg-blue-100 border border-blue-400 rounded-lg p-6 mb-4">
+      <h3 class="text-xl font-semibold mb-2">Check Your Eligibility for a Free Account</h3>
+      <p class="mb-4">Sign in to see if you're eligible for a free account. If not, you can still purchase an account below.</p>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Sign In</h3>
+      <div class="space-y-2">
+        <button 
+          on:click={() => signIn("google", { callbackUrl: `/buy?${data.searchParams}`})}
+          class="w-full px-4 py-2 bg-[#4285F4] text-white rounded hover:bg-[#357AE8] transition duration-300 flex items-center justify-center"
+        >
+          <img src={GoogleLogo} alt="Google Logo" class="w-5 h-5 mr-2" />
+          Sign in with Google
+        </button>
+        <button 
+          on:click={() => signIn("apple", { callbackUrl: `/buy?${data.searchParams}`})}
+          class="w-full px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition duration-300 flex items-center justify-center"
+        >
+          <img src={AppleLogo} alt="Apple Logo" class="w-5 h-5 mr-2" />
+          Sign in with Apple
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white shadow rounded-lg p-6">
+      <h3 class="text-xl font-semibold mb-4">Purchase Details</h3>
+      <p class="mb-4">Create a {data.stripeProduct.product.name} for {formatPrice(data.stripeProduct.price.unit_amount, data.stripeProduct.price.currency)}</p>
+      <button 
+        on:click={handleBuy}
+        class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300"
+      >
+        Continue to Payment &rarr;
+      </button>
+    </div>
   {/if}
   
   <noscript>
-    <p class="mt-4 text-red-600">
+    <p class="text-red-500">
       Sorry, our payment processor Stripe requires JavaScript to be enabled to function.
     </p>
   </noscript>
   {#if buyError}
-    <p class="mt-4 text-red-600">
+    <p class="text-red-500">
       <strong>ERROR:</strong> {buyError}
     </p>
   {/if}
