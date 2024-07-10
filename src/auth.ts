@@ -1,61 +1,98 @@
 import { SvelteKitAuth } from "@auth/sveltekit"
 import Google from "@auth/sveltekit/providers/google"
-import Apple from "@auth/sveltekit/providers/apple"
-import { AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, AUTH_APPLE_ID, AUTH_APPLE_SECRET, AUTH_REDIRECT_URL } from "$env/static/private"
-import { error, json, text, type Handle } from '@sveltejs/kit';
-import { sequence } from '@sveltejs/kit/hooks';
+import { AUTH_APPLE_ID, AUTH_APPLE_SECRET, AUTH_SECRET, AUTH_GOOGLE_ID, AUTH_GOOGLE_SECRET, AUTH_REDIRECT_URL } from "$env/static/private"
+import type { OAuthConfig, OAuthUserConfig } from "@auth/sveltekit/providers"
 
 const redirectUrl = AUTH_REDIRECT_URL || "http://localhost:3000"
 
-const ALLOWED_PATHS = ['/auth/callback/apple'];
+interface AppleProfile {
+  sub: string
+  name?: string
+  email?: string
+}
 
-/**
- * Custom CSRF protection with the ability to bypass for specific routes.
- */
-const csrf = (): Handle => async ({ event, resolve }) => {
-  const forbidden =
-    event.request.method === 'POST' &&
-    event.request.headers.get('origin') !== event.url.origin &&
-    isFormContentType(event.request) &&
-    !ALLOWED_PATHS.includes(event.url.pathname);
+interface AppleTokens {
+  access_token: string
+  token_type: string
+  expires_in: number
+  refresh_token: string
+  id_token: string
+}
 
-  if (forbidden) {
-    const message = `Cross-site ${event.request.method} form submissions are forbidden`;
-    if (event.request.headers.get('accept') === 'application/json') {
-      return json({ message }, { status: 403 });
-    }
-    return text(message, { status: 403 });
+// Function to generate a random state
+function generateRandomState(length: number = 32): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-
-  return resolve(event);
-};
-
-function isContentType(request: Request, ...types: string[]) {
-  const type = request.headers.get('content-type')?.split(';', 1)[0].trim() ?? '';
-  return types.includes(type);
+  return result;
 }
 
-function isFormContentType(request: Request) {
-  return isContentType(request, 'application/x-www-form-urlencoded', 'multipart/form-data');
+const appleProvider: OAuthConfig<AppleProfile> = {
+  id: "apple",
+  name: "Apple",
+  type: "oauth",
+  wellKnown: "https://appleid.apple.com/.well-known/openid-configuration",
+  authorization: {
+    url: 'https://appleid.apple.com/auth/authorize',
+    params: {
+      scope: "name email",
+      response_type: "code",
+      response_mode: "form_post",
+      state: generateRandomState(),
+    },
+  },
+  token: {
+    url: `https://appleid.apple.com/auth/token`,
+  },
+  userinfo: {
+    url: "https://appleid.apple.com/auth/userinfo",
+    async request({ tokens }: { tokens: AppleTokens }) {
+      return { sub: tokens.id_token.split('.')[1] }
+    },
+  },
+  checks: ["pkce", "state"],
+  client: {
+    token_endpoint_auth_method: "client_secret_post",
+  },
+  profile(profile: AppleProfile) {
+    return {
+      id: profile.sub,
+      name: profile.name || null,
+      email: profile.email || null,
+      image: null,
+    }
+  },
+    clientId: AUTH_APPLE_ID,
+    clientSecret: AUTH_APPLE_SECRET,
 }
 
-const authHandle = SvelteKitAuth({
+export const { handle, signIn, signOut } = SvelteKitAuth({
   trustHost: true,
   providers: [
+    appleProvider as OAuthConfig<AppleProfile> & OAuthUserConfig<AppleProfile>,
     Google({
       clientId: AUTH_GOOGLE_ID,
       clientSecret: AUTH_GOOGLE_SECRET,
       redirectProxyUrl: `${redirectUrl}/auth/callback/google`,
     }),
-    Apple({
-      clientId: AUTH_APPLE_ID,
-      clientSecret: AUTH_APPLE_SECRET,
-      redirectProxyUrl: `${redirectUrl}/auth/callback/apple`,
-    })
   ],
-});
-
-// Combine our custom CSRF protection with SvelteKitAuth
-export const handle = sequence(csrf(), authHandle.handle);
-
-export const { signIn, signOut } = authHandle;
+  callbacks: {
+    async jwt({ token, account, profile }) {
+      if (account && profile) {
+        token.id = profile.sub || profile.id
+        token.email = profile.email
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string
+        session.user.email = token.email as string
+      }
+      return session
+    },
+  },
+  secret: AUTH_SECRET,
+})
