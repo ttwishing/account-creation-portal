@@ -75,7 +75,7 @@ export async function createSession(
     const session = await client.checkout.sessions.create({
         mode: 'payment',
         payment_method_types: ['card'],
-        success_url: `${publicUrl.origin}/success/${createRequest || ''}?${searchParams}`,
+        success_url: `${publicUrl.origin}/success/${createRequest.toString(false)}?${searchParams}`,
         cancel_url: `${publicUrl.origin}/buy?${searchParams}`,
         payment_intent_data: {
             metadata: { code: createRequest.code, request: createRequest.toString(false), sextantId }

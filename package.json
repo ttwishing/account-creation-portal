@@ -33,6 +33,7 @@
 		"@stripe/stripe-js": "^4.0.0",
 		"@wharfkit/antelope": "^1.0.8",
 		"dotenv": "^16.4.5",
+		"lucide-svelte": "^0.407.0",
 		"stripe": "^16.1.0"
 	}
 }
