@@ -1,14 +1,14 @@
 /** Sextant API helpers, backend only. */
 
 import { Bytes, Checksum256, PrivateKey } from '@wharfkit/antelope'
-import { SEXTANT_URL, SEXTANT_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION, BUOY_SERVICE_URL, STRIPE_PRODUCT_ID, SEXTANT_PRODUCT_ID } from '$env/static/private'
+import { SEXTANT_URL, SEXTANT_DEVICE_UUID, SEXTANT_KEY, ACCOUNT_CREATOR_VERSION, BUOY_SERVICE_URL, STRIPE_PRODUCT_ID, SEXTANT_PRODUCT_ID } from '$env/static/private'
 import type { NameType, PublicKeyType } from '@wharfkit/antelope'
 import { CreateRequest, type CreateRequestArguments, type CreateRequestType } from '@greymass/account-creation'
 import { randomCode } from './helpers'
 import { getProduct } from './stripe'
 
 const sextantUrl = SEXTANT_URL || 'http://localhost:8080'
-const sextantUUID = SEXTANT_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
+const sextantDeviceUUID = SEXTANT_DEVICE_UUID || '8273DBFA-D91F-4C65-A8A3-0D9325B5E99C'
 const sextantKey = PrivateKey.from(SEXTANT_KEY || 'PVT_K1_2VbtWei9iPNJWDkzSdrJG1BHEyftwPWeJVnyaKxzi4hkjVX2fF')
 const buoyServiceUrl = new URL(BUOY_SERVICE_URL || 'https://cb.anchor.link')
 const accountCreatorVersion = ACCOUNT_CREATOR_VERSION || 'account-creation-portal'
@@ -67,7 +67,7 @@ export async function verifyTicket(payload: CreateRequestType) {
     const request = CreateRequest.from(payload)
     const ticket = await sextantApiCall('/tickets/verify', {
         code: request.code,
-        deviceId: sextantUUID,
+        deviceId: sextantDeviceUUID,
         version: accountCreatorVersion
     })
 
@@ -81,7 +81,7 @@ export async function checkAccountName(productId: string, accountName: NameType,
         await sextantApiCall('/tickets/check', {
             name: String(accountName),
             code: createRequest.code,
-            deviceId: sextantUUID,
+            deviceId: sextantDeviceUUID,
             productId,
             version: accountCreatorVersion
         })
@@ -125,7 +125,7 @@ export function createAccount(payload: CreateAccountRequest) {
         activeKey: String(payload.activeKey),
         ownerKey: String(payload.ownerKey),
         accountName: String(payload.accountName),
-        deviceId: sextantUUID,
+        deviceId: sextantDeviceUUID,
         version: accountCreatorVersion,
         code,
     })
