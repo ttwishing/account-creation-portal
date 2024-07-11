@@ -24,18 +24,49 @@ export class SextantError extends Error {
     }
 }
 
-async function sextantApiCall<T = any>(path: string, data: any): Promise<T | undefined> {
-    const body = Bytes.from(JSON.stringify(data), 'utf8')
-    const signature = sextantKey.signMessage(body)
-
+function generateCurlFromSextantApiCall(path: string, data: any, sextantUrl: string, sextantKey: any): string {
+    const body = Bytes.from(JSON.stringify(data), 'utf8');
+    const signature = sextantKey.signMessage(body);
+  
+    let curlCommand = `curl '${sextantUrl}${path}'`;
+  
+    // Method
+    curlCommand += ` -X POST`;
+  
+    // Headers
+    curlCommand += ` -H 'Content-Type: application/json'`;
+    curlCommand += ` -H 'X-Request-Sig: ${String(signature)}'`;
+  
+    // Body
+    curlCommand += ` -d '${JSON.stringify(data)}'`;
+  
+    return curlCommand;
+  }
+  
+  // Usage example
+  async function sextantApiCall<T = any>(path: string, data: any): Promise<T | undefined> {
+    const body = Bytes.from(JSON.stringify(data), 'utf8');
+    const signature = sextantKey.signMessage(body);
+  
+    console.log({ sextantUrl });
+  
+    // Log the cURL command
+    const curlCommand = generateCurlFromSextantApiCall(path, data, sextantUrl, sextantKey);
+    console.log('Equivalent cURL command:');
+    console.log(curlCommand);
+  
+    console.log({ sextantUrl, path, signature: String(signature), body: String(body), data, sextantKey: String(sextantKey) });
+  
     const response = await fetch(sextantUrl + path, {
-        body: JSON.stringify(data),
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Request-Sig': String(signature)
-        }
-    })
+      body: JSON.stringify(data),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Request-Sig': String(signature)
+      }
+    });
+
+    console.log({ sextantResponse: response.status })
 
     if (response?.status !== 200) {
         let errorData: any
@@ -44,6 +75,7 @@ async function sextantApiCall<T = any>(path: string, data: any): Promise<T | und
         } catch {
             throw new Error(`Unknown Sextant API error: ${response.status}`)
         }
+        console.log({ errorData })
         throw new SextantError(errorData, response.status)
     }
     if (
@@ -101,6 +133,7 @@ export async function freeAccountAvailable(email: string) {
         return true
     }
     catch (error: unknown) {
+        console.log('freeAccountAvailable', { error })
         return false
     }
 }

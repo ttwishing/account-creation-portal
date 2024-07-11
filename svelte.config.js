@@ -19,9 +19,11 @@ const config = {
 			checkOrigin: false,
 		}
 	},
-	define: {
-		'process.env': process.env
-	},
+	vite: {
+		ssr: {
+		  	external: ['jsonwebtoken']
+		}
+	}
 };
 
 export default config;
