@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { encode, decode } from "@auth/core/jwt";
+import { encode } from "@auth/core/jwt";
 import * as jose from 'jose';
 import { 
   AUTH_APPLE_TEAM_ID,
@@ -11,7 +11,7 @@ import {
 } from "$env/static/private";
 
 const redirectUrl = AUTH_REDIRECT_URL || "http://localhost:3000";
-const COOKIE_NAME = "authjs.session-token";
+const COOKIE_NAME = "__Secure-authjs.session-token";
 
 async function generateClientSecret(): Promise<string> {
     // Ensure the key is in PEM format
@@ -52,7 +52,7 @@ export async function exchangeCodeForTokens(code: string): Promise<{ id_token: s
     }),
   });
 
-  console.log({ tokenResponse })
+//   console.log({ tokenResponse })
 
   if (!tokenResponse.ok) {
     throw error(400, 'Failed to validate Apple authorization code');
@@ -99,7 +99,7 @@ export function createSessionToken(decodedToken: any, accessToken: string, refre
   };
 }
 
-export async function encodeAndSetCookie(event: any, token: any): Promise<void> {
+export async function encodeCookies(token: any): Promise<{ cookie: { name: string; value: string; options: any } }> {
   const encodedToken = await encode({
     token,
     secret: AUTH_SECRET,
@@ -115,5 +115,11 @@ export async function encodeAndSetCookie(event: any, token: any): Promise<void> 
     maxAge: 30 * 24 * 60 * 60, // 30 days
   };
 
-  event.cookies.set(COOKIE_NAME, encodedToken, cookieOptions);
+  return {
+    cookie: {
+      name: COOKIE_NAME,
+      value: encodedToken,
+      options: cookieOptions,
+    }
+  };
 }

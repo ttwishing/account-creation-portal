@@ -18,7 +18,7 @@ export const load: ServerLoad = async ({ url, fetch, locals }) => {
       canGetFreeAccount = await freeAccountAvailable(session.user.email)
     }
 
-    console.log({canGetFreeAccount})
+    // console.log({canGetFreeAccount})
 
     return {
       stripeProduct: stripeProduct,

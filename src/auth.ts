@@ -14,9 +14,10 @@ import { sequence } from '@sveltejs/kit/hooks';
 import { 
   exchangeCodeForTokens, 
   createSessionToken, 
-  encodeAndSetCookie, 
-  parseIdToken
+  parseIdToken,
+  encodeCookies
 } from '$lib/apple';
+import { serialize } from "cookie";
 
 const redirectUrl = AUTH_REDIRECT_URL || "http://localhost:3000"
 
@@ -48,21 +49,33 @@ const appleAuthenticationHandle: Handle = async ({ event, resolve }) => {
 
     try {
       const { id_token, access_token, refresh_token } = await exchangeCodeForTokens(code);
-      console.log({ id_token, access_token, refresh_token });
       const decodedToken = await parseIdToken(id_token);
-      console.log({ decodedToken });
       const sessionToken = createSessionToken(decodedToken, access_token, refresh_token);
-      await encodeAndSetCookie(event, sessionToken);
+      const { cookie } = await encodeCookies(sessionToken);
 
-      console.log({ cookies: event.cookies })
+      event.cookies.set(cookie.name, cookie.value, cookie.options);
 
+      // Set the cookie
+      const cookieHeader = serialize(cookie.name, cookie.value, cookie.options);
+
+      // Resolve the event to ensure cookies are set
       await resolve(event);
+
+      // // Redirect after successful authentication
+      // return new Response(null, {
+      //   status: 302,
+      //   headers: {
+      //     ...response.headers,
+      //     'Set-Cookie': cookieHeader,
+      //     Location: `/buy?${event.url.searchParams}`
+      //   }
+      // });
     } catch (err) {
       console.error('Error processing Apple callback:', err);
       throw error(500, 'Error processing Apple sign-in');
     }
 
-    throw redirect(302, `/buy?${event.url.searchParams}`)
+    throw redirect(302, `/buy?${event.url.searchParams}`);
   }
 
   return resolve(event);

@@ -81,7 +81,9 @@
       <div class="flex justify-between items-center">
         <div>
           <h3 class="text-xl font-semibold">{$t('Logged in as {name}', { name: data.session.user?.name ?? '' })}</h3>
-          <p class="text-sm text-gray-600">{data.session.user?.email}</p>
+          {#if data.session.user?.name !== data.session.user?.email}
+            <p class="text-sm text-gray-600">{data.session.user?.email}</p>
+          {/if}
         </div>
         <button 
           on:click={handleLogout}
