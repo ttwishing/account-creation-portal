@@ -1,13 +1,35 @@
 import { type ServerLoad, redirect } from "@sveltejs/kit";
 import { freeAccountAvailable } from "$lib/sextant";
 
-export const load: ServerLoad = async ({ url, fetch, locals }) => {
+const SEARCH_PARAMS_COOKIE = 'searchParamsCookie';
+
+export const load: ServerLoad = async ({ url, fetch, locals, cookies }) => {
     const response = await fetch(`/api/stripe/product`)
     const stripeProduct = await response.json()
     const creationTicket = url.searchParams.get('ticket');
 
+    // Get the current search params
+    let currentSearchParams = new URLSearchParams(url.searchParams);
+
+    // If there are search params in the URL, update the cookie
+    if (currentSearchParams.toString()) {
+        cookies.set(SEARCH_PARAMS_COOKIE, currentSearchParams.toString(), {
+            path: '/',
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax'
+        });
+    } else {
+        // If no search params in URL, try to get them from the cookie
+        const storedParams = cookies.get(SEARCH_PARAMS_COOKIE);
+        if (storedParams) {
+            currentSearchParams = new URLSearchParams(storedParams);
+        }
+    }
+
     if (creationTicket) {
-      throw  redirect(302, `/create?ticket=${creationTicket}&${url.searchParams}`)
+        throw redirect(302, `/create?ticket=${creationTicket}&${currentSearchParams}`);
     }
 
     const session = await locals.auth()
@@ -15,17 +37,19 @@ export const load: ServerLoad = async ({ url, fetch, locals }) => {
     let canGetFreeAccount = false
 
     if (session?.user?.email) {
-      canGetFreeAccount = await freeAccountAvailable(session.user.email)
+        canGetFreeAccount = await freeAccountAvailable(session.user.email)
     }
 
     return {
-      stripeProduct: stripeProduct,
-      createRequestArguments: {
-        login_scope: url.searchParams.get('scope'),
-        return_path: url.searchParams.get('return_url'),
-      },
-      searchParams: String(url.searchParams),
-      session,
-      canGetFreeAccount,
+        stripeProduct: stripeProduct,
+        createRequestArguments: {
+            login_scope: currentSearchParams.get('scope'),
+            return_path: currentSearchParams.get('return_url'),
+            owner_key: currentSearchParams.get('owner_key'),
+            active_key: currentSearchParams.get('active_key'),
+        },
+        searchParams: String(currentSearchParams),
+        session,
+        canGetFreeAccount,
     };
-  };
+};
