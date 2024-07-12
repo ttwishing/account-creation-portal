@@ -17,7 +17,6 @@ import {
   parseIdToken,
   encodeCookies
 } from '$lib/apple';
-import { serialize } from "cookie";
 
 const redirectUrl = AUTH_REDIRECT_URL || "http://localhost:3000"
 
@@ -55,21 +54,9 @@ const appleAuthenticationHandle: Handle = async ({ event, resolve }) => {
 
       event.cookies.set(cookie.name, cookie.value, cookie.options);
 
-      // Set the cookie
-      const cookieHeader = serialize(cookie.name, cookie.value, cookie.options);
-
       // Resolve the event to ensure cookies are set
       await resolve(event);
 
-      // // Redirect after successful authentication
-      // return new Response(null, {
-      //   status: 302,
-      //   headers: {
-      //     ...response.headers,
-      //     'Set-Cookie': cookieHeader,
-      //     Location: `/buy?${event.url.searchParams}`
-      //   }
-      // });
     } catch (err) {
       console.error('Error processing Apple callback:', err);
       throw error(500, 'Error processing Apple sign-in');

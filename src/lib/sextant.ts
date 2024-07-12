@@ -47,16 +47,7 @@ function generateCurlFromSextantApiCall(path: string, data: any, sextantUrl: str
   async function sextantApiCall<T = any>(path: string, data: any): Promise<T | undefined> {
     const body = Bytes.from(JSON.stringify(data), 'utf8');
     const signature = sextantKey.signMessage(body);
-  
-    // console.log({ sextantUrl });
-  
-    // Log the cURL command
-    const curlCommand = generateCurlFromSextantApiCall(path, data, sextantUrl, sextantKey);
-    // console.log('Equivalent cURL command:');
-    // console.log(curlCommand);
-  
-    // console.log({ sextantUrl, path, signature: String(signature), body: String(body), data, sextantKey: String(sextantKey) });
-  
+    
     const response = await fetch(sextantUrl + path, {
       body: JSON.stringify(data),
       method: 'POST',
@@ -66,8 +57,6 @@ function generateCurlFromSextantApiCall(path: string, data: any, sextantUrl: str
       }
     });
 
-    // console.log({ sextantResponse: response.status })
-
     if (response?.status !== 200) {
         let errorData: any
         try {
@@ -75,7 +64,6 @@ function generateCurlFromSextantApiCall(path: string, data: any, sextantUrl: str
         } catch {
             throw new Error(`Unknown Sextant API error: ${response.status}`)
         }
-        // console.log({ errorData })
         throw new SextantError(errorData, response.status)
     }
     if (

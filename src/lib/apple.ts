@@ -52,8 +52,6 @@ export async function exchangeCodeForTokens(code: string): Promise<{ id_token: s
     }),
   });
 
-//   console.log({ tokenResponse })
-
   if (!tokenResponse.ok) {
     throw error(400, 'Failed to validate Apple authorization code');
   }
