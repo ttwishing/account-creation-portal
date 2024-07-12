@@ -15,14 +15,15 @@ export const load: ServerLoad = async ({ url, fetch, locals, cookies }) => {
     if (currentSearchParams.toString()) {
         cookies.set(SEARCH_PARAMS_COOKIE, currentSearchParams.toString(), {
             path: '/',
-            maxAge: 60 * 60 * 24 * 30, // 30 days
+            maxAge: 60 * 60 * 1, // 1 hour
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true,
             sameSite: 'lax'
         });
     } else {
         // If no search params in URL, try to get them from the cookie
         const storedParams = cookies.get(SEARCH_PARAMS_COOKIE);
+
         if (storedParams) {
             currentSearchParams = new URLSearchParams(storedParams);
         }

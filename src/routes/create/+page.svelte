@@ -112,7 +112,6 @@
           const result = await response.json();
 
           if (response.ok) {
-            console.log($t('Account created successfully'), result);
             accountCreated.set(true);
 
             if (window.opener) {

@@ -121,7 +121,6 @@ export async function freeAccountAvailable(email: string) {
         return true
     }
     catch (error: unknown) {
-        console.log('freeAccountAvailable', { error })
         return false
     }
 }

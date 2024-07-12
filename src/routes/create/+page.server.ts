@@ -40,13 +40,8 @@ export const load: ServerLoad = async ({ url, fetch, cookies }) => {
         const storedParams = cookies.get(SEARCH_PARAMS_COOKIE);
         if (storedParams) {
             const cookieParams = new URLSearchParams(storedParams);
-            
-            if (!currentSearchParams.get('owner_key') && cookieParams.get('owner_key')) {
-                currentSearchParams.set('owner_key', cookieParams.get('owner_key')!);
-            }
-            if (!currentSearchParams.get('active_key') && cookieParams.get('active_key')) {
-                currentSearchParams.set('active_key', cookieParams.get('active_key')!);
-            }
+            currentSearchParams.set('owner_key', cookieParams.get('owner_key')!);
+            currentSearchParams.set('active_key', cookieParams.get('active_key')!);
         }
     }
 

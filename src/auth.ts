@@ -58,7 +58,6 @@ const appleAuthenticationHandle: Handle = async ({ event, resolve }) => {
       await resolve(event);
 
     } catch (err) {
-      console.error('Error processing Apple callback:', err);
       throw error(500, 'Error processing Apple sign-in');
     }
 
