@@ -1,10 +1,10 @@
 <script lang="ts">
   import { writable, get } from 'svelte/store';
   import { onMount } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
   import type { Product } from '$lib/types';
-  import { Name } from '@wharfkit/antelope';
   import { t } from '$lib/i18n';
-  import { Check } from 'lucide-svelte';
+  import { Check, AlertCircle, Loader2 } from 'lucide-svelte';
 
   interface PageData {
     code: string;
@@ -116,12 +116,8 @@
 
             if (window.opener) {
               window.opener.postMessage({
-                type: 'account_created',
-                data: {
-                  accountName: Name.from(accountNameValue + '.gm'),
-                  activeKey,
-                  ownerKey,
-                }
+                sa: `${accountNameValue}.gm`,
+                sp: 'active'
               }, '*');
             }
 
@@ -140,51 +136,61 @@
   }
 </script>
 
-<div class="container mx-auto max-w-md p-4">
+<div class="container mx-auto max-w-md p-4 min-h-screen flex items-center justify-center">
   {#if $keysMissing}
-    <div class="bg-surface-100-800-token p-4 rounded">
+    <div class="bg-surface-100-800-token p-6 rounded-lg shadow-lg w-full" in:fade={{ duration: 300 }}>
       <h2 class="text-2xl font-bold mb-4">{$t('To create an account using Anchor')}</h2>
       <p class="mb-4">{$t('To create an account using Anchor, please provide the following code:')}</p>
-      <pre class="bg-surface-200-700-token p-4 rounded">{code}</pre>
+      <pre class="bg-surface-200-700-token p-4 rounded-md overflow-x-auto">{code}</pre>
     </div>
   {:else if $accountCreated}
-    <div class="bg-surface-100-800-token p-4 rounded flex flex-col items-center">
-      <div class="w-16 h-16 mb-8 flex items-center justify-center bg-green-500 rounded-full text-white">
-        <Check size={40} />
+    <div class="bg-surface-100-800-token p-8 rounded-lg shadow-lg flex flex-col items-center text-center w-full" in:fly={{ y: 20, duration: 500 }}>
+      <div class="w-20 h-20 mb-6 flex items-center justify-center bg-green-500 rounded-full text-white">
+        <Check size={48} />
       </div>
-      <h2 class="text-2xl font-bold mb-4">{$t('Account Created Successfully!')}</h2>
+      <h2 class="text-3xl font-bold mb-4">{$t('Account Created Successfully!')}</h2>
       <p class="mb-4">{$t('Your account was created successfully. You can now use this account on the wallet that generated the private keys.')}</p>
     </div>
   {:else}
-    <div class="bg-surface-100-800-token p-4 rounded">
+    <div class="bg-surface-100-800-token p-6 rounded-lg shadow-lg w-full" in:fade={{ duration: 300 }}>
       <h1 class="text-3xl font-bold mb-6">{$t('Create New Account')}</h1>
 
       <p class="mb-4">{$t('Enter the desired EOS account name:')}</p>
 
-      <div class="mb-4 relative">
+      <div class="mb-6 relative">
         <input
           type="text"
-          class="w-full p-2 pr-20 border border-surface-300-600-token rounded"
+          class="w-full p-3 pr-20 border border-surface-300-600-token rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
           on:input={handleAccountNameInput}
           placeholder={$t('Enter account name')}
         />
-        <span class="absolute right-2 top-2.5 text-surface-500">.gm</span>
+        <span class="absolute right-3 top-3 text-surface-500">.gm</span>
+        
         {#if $error}
-          <p class="text-red-500 mt-2">{$error}</p>
+          <p class="text-red-500 mt-2 flex items-center" in:fly={{ y: -10, duration: 300 }}>
+            <AlertCircle size={16} class="mr-1" /> {$error}
+          </p>
         {/if}
-        {#if $nameAvailable === true}
-          <p class="text-green-500 mt-2">{$t('This account name is available.')}</p>
-        {/if}
-        {#if $nameAvailable === false}
-          <p class="text-red-500 mt-2">{$t('This account name is not available.')}</p>
+        
+        {#if $nameAvailable !== null}
+          <p class="mt-2 flex items-center" class:text-green-500={$nameAvailable} class:text-red-500={!$nameAvailable} in:fly={{ y: -10, duration: 300 }}>
+            {#if $nameAvailable}
+              <Check size={16} class="mr-1" /> {$t('This account name is available.')}
+            {:else}
+              <AlertCircle size={16} class="mr-1" /> {$t('This account name is not available.')}
+            {/if}
+          </p>
         {/if}
       </div>
 
       <button
-        class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="w-full px-4 py-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         on:click={handleConfirm}
         disabled={$loading || $creatingAccount || !$nameAvailable}
       >
+        {#if $loading || $creatingAccount}
+          <Loader2 class="animate-spin mr-2" size={20} />
+        {/if}
         {#if $loading}
           {$t('Checking name availability...')}
         {:else if $creatingAccount}

@@ -38,6 +38,7 @@ export const load: ServerLoad = async ({ url, fetch, cookies }) => {
     // If owner_key or active_key are missing, try to get them from the cookie
     if (!currentSearchParams.get('owner_key') || !currentSearchParams.get('active_key')) {
         const storedParams = cookies.get(SEARCH_PARAMS_COOKIE);
+
         if (storedParams) {
             const cookieParams = new URLSearchParams(storedParams);
             currentSearchParams.set('owner_key', cookieParams.get('owner_key')!);
