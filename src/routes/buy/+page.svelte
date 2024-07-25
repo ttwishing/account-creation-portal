@@ -123,18 +123,13 @@
         </div>
       {:else}
         <div class="bg-yellow-100 border border-yellow-400 rounded-lg p-6 mb-4">
-          <h3 class="text-xl font-semibold mb-2">{$t('Free Account Not Available')}</h3>
-          <p>{$t('You\'ve already received your free account. To create additional accounts, please proceed with the purchase below.')}</p>
+          <h3 class="text-xl font-semibold mb-2">{$t('Free Account Unvailable')}</h3>
+          <p>{$t("You're not eligible for a free account at this time. You can purchase an account below, or sign in with another account.")}</p>
         </div>
       {/if}
     {:else}
-      <div class="bg-blue-100 border border-blue-400 rounded-lg p-6 mb-4">
-        <h3 class="text-xl font-semibold mb-2">{$t('Check Your Eligibility for a Free Account')}</h3>
-        <p class="mb-4">{$t('Sign in to see if you\'re eligible for a free account. If not, you can still purchase an account below.')}</p>
-      </div>
-
       <div class="bg-white shadow rounded-lg p-6 mb-4">
-        <h3 class="text-xl font-semibold mb-4">{$t('Sign In')}</h3>
+        <h3 class="text-xl font-semibold mb-4">{$t('Sign in to get a free account')}</h3>
         <div class="space-y-3">
           <button 
             on:click={() => signIn("google", { callbackUrl: `/buy?${data.searchParams}`})}
@@ -156,7 +151,7 @@
 
     {#if !data.canGetFreeAccount}
       <div class="bg-white shadow rounded-lg p-6 mb-4">
-        <h3 class="text-xl font-semibold mb-4">{$t('Purchase Details')}</h3>
+        <h3 class="text-xl font-semibold mb-4">{$t('Buy an account')}</h3>
         <p class="mb-4">{$t('Create a {productName} for {price}', { 
           productName: data.stripeProduct.product.name, 
           price: formatPrice(data.stripeProduct.price.unit_amount, data.stripeProduct.price.currency)

@@ -19,5 +19,8 @@
     "Failed to create account: {reason}": "Failed to create account: {reason}",
     "Error creating account": "Error creating account",
     "Error creating account: {reason}": "Error creating account: {reason}",
-    "Unknown error": "Unknown error"
+    "Unknown error": "Unknown error",
+    "Sign in to get a free account": "Sign in to get a free account",
+    "Free Account Unvailable": "Free Account Unvailable",
+    "You're not eligible for a free account at this time. You can purchase an account below, or sign in with another account.": "You're not eligible for a free account at this time. You can purchase an account below, or sign in with another account."
   }
