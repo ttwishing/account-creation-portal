@@ -74,12 +74,12 @@ function generateCurlFromSextantApiCall(path: string, data: any, sextantUrl: str
     }
 }
 
-export async function createTicket(code: string, productId: string, comment: string, email?: string) {
+export async function createTicket(code: string, productId: string, comment: string, _email?: string) {
     await sextantApiCall('/tickets/new', {
         code,
         productId,
         comment,
-        email,
+        // email,
     })
 }
 
@@ -112,17 +112,18 @@ export async function checkAccountName(productId: string, accountName: NameType,
     return { nameAvailable: true }
 }
 
-export async function freeAccountAvailable(email: string) {
-    try {
-        await sextantApiCall('/tickets/free', {
-            email
-        })
+export async function freeAccountAvailable(_email: string) {
+    return true
+    // try {
+    //     await sextantApiCall('/tickets/free', {
+    //         email
+    //     })
 
-        return true
-    }
-    catch (error: unknown) {
-        return false
-    }
+    //     return true
+    // }
+    // catch (error: unknown) {
+    //     return false
+    // }
 }
 
 export interface CreateAccountRequest {
