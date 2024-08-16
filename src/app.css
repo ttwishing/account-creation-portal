@@ -1,3 +1,56 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+    --text-black: #111111;
+}
+
+@layer base {
+    body {
+        @apply bg-white;
+        @apply dark:bg-[#0D0D0D];
+        @apply text-[var(--text-black)];
+        @apply dark:text-white;
+    }
+
+    h1 {
+        @apply text-[1.75rem];
+        @apply leading-[2.125rem];
+        @apply font-semibold;
+        @apply max-xs:text-2xl;
+    }
+
+    h2 {
+        @apply text-2xl;
+        @apply font-semibold;
+    }
+
+    h3 {
+        @apply text-xl;
+        @apply font-semibold;
+    }
+
+    p {
+        @apply text-base;
+    }
+}
+
+@layer components {
+    .btn-wrapper {
+        @apply min-w-60 p-3 text-lg font-semibold text-white whitespace-nowrap rounded-xl focus:ring-2 focus:ring-black dark:focus:ring-white transition duration-300
+    }
+
+    .btn-primary {
+        @apply min-w-60 p-3 text-lg font-semibold rounded-xl text-white bg-[#2D8EFF] hover:bg-[#2880E4] active:bg-[#2472CC] focus:bg-[#2880E4] focus:ring-black focus:ring-2 dark:bg-[#479DFF] dark:hover:bg-[#59A7FF] dark:active:bg-[#6BB1FF] dark:focus:bg-[#59A7FF] dark:focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed transition duration-300
+    }
+
+    hr:not(.divider) {
+        @apply h-[1px];
+        @apply border-0;
+        @apply border-t-0;
+        @apply bg-[#D9D9D9];
+        @apply dark:bg-[#333333]
+    }
+
+}
