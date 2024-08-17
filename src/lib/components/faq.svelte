@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { t } from "../../lib/i18n";
+
 	export let faqExpanded = true;
 	interface FAQ {
 		title: string;
@@ -6,39 +8,46 @@
 	}
 	const faqArray: FAQ[] = [
 		{
-			title: "What is EOS?",
-			content:
+			title: $t("What is EOS?"),
+			content: $t(
 				"EOS is a blockchain platform designed for decentralized applications (dApps).",
+			),
 		},
 		{
-			title: "Why do I need an EOS account?",
-			content:
+			title: $t("Why do I need an EOS account?"),
+			content: $t(
 				"An EOS account is necessary to interact with the EOS blockchain, use dApps, and manage EOS tokens.",
+			),
 		},
 		{
-			title: "Are there different ways to create an EOS account?",
-			content:
+			title: $t("Are there different ways to create an EOS account?"),
+			content: $t(
 				"Yes, typically you can create an account for free through certain platforms or purchase an account.",
+			),
 		},
 		{
-			title: "What information do I need to create an EOS account?",
-			content:
+			title: $t("What information do I need to create an EOS account?"),
+			content: $t(
 				"Generally, you'll need to provide an email address and create a password. Some methods may require additional verification.",
+			),
 		},
 		{
-			title: "Are EOS accounts free?",
-			content:
+			title: $t("Are EOS accounts free?"),
+			content: $t(
 				"Yes, you can create multiple EOS accounts, but each requires a separate creation process.",
+			),
 		},
 		{
-			title: "Can I create multiple EOS accounts?",
-			content:
+			title: $t("Can I create multiple EOS accounts?"),
+			content: $t(
 				"EOS is a blockchain platform designed for decentralized applications (dApps).",
+			),
 		},
 		{
-			title: "What should I do after creating an EOS account?",
-			content:
+			title: $t("What should I do after creating an EOS account?"),
+			content: $t(
 				"After creation, secure your account keys, explore EOS wallets, and familiarize yourself with EOS resources and bandwidth.",
+			),
 		},
 	];
 </script>
