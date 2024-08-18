@@ -1,5 +1,7 @@
 {
-  "Create New Account": "Create New Account",
+  "Create New EOS Account": "Create New EOS Account",
+  "Checking Login Status": "Checking Login Status",
+  "Please wait while we verify your login status...": "Please wait while we verify your login status...",
   "To create an account using Anchor": "To create an account using Anchor",
   "To create an account using Anchor, please provide the following code:": "To create an account using Anchor, please provide the following code:",
   "Account Created Successfully!": "Account Created Successfully!",
