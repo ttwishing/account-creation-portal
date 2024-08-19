@@ -4,7 +4,7 @@
 <div class="w-full min-h-screen flex mx-auto">
 	<div class="flex flex-col w-full xl:w-1/2">
 		<div
-			class="bg-[url('/images/creation-top-bg.jpg')] h-10 bg-cover bg-no-repeat bg-center xl:hidden"
+			class="bg-[url('/images/creation-right-bg.jpg')] h-10 bg-cover bg-no-repeat bg-center xl:hidden"
 		/>
 		<div class="flex-1 flex justify-center">
 			<div class="px-[60px] max-xs:px-6 w-[820px]">
