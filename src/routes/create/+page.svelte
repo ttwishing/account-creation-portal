@@ -170,7 +170,7 @@
     </div>
   {:else if $accountCreated}
     <div
-      class="bg-surface-100-800-token p-8 rounded-lg shadow-lg flex flex-col items-center text-center w-full"
+      class="bg-surface-100-800-token p-8 rounded-lg shadow-lg flex flex-col items-center text-center w-full ring-1 ring-slate-900/5 dark:bg-slate-800"
       in:fly={{ y: 20, duration: 500 }}
     >
       <div
