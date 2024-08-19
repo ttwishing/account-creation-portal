@@ -5,8 +5,6 @@
   import { loadStripe } from "@stripe/stripe-js";
   import { signIn, signOut } from "@auth/sveltekit/client";
   import type { Session } from "@auth/sveltekit";
-  import GoogleLogo from "../../assets/google-logo.svg";
-  import AppleLogo from "../../assets/apple-logo.svg";
   import { t } from "../../lib/i18n";
 
   interface CreateRequestArguments {
