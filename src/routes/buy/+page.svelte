@@ -120,7 +120,7 @@
       </div>
       <button
         on:click={handleLogout}
-        class="btn-wrapper max-xs:w-full bg-[#FF0000] hover:bg-[#E50000] active:bg-[#CC0000] focus:bg-[#E50000] dark:bg-[#FF1A1A] dark:hover:bg-[#FF3030] dark:active:bg-[#FF4747] dark:focus:bg-[#FF3030]"
+        class="btn-primary max-xs:w-full bg-[#FF0000] dark:bg-[#FF1A1A"
       >
         {$t("Logout")}
       </button>
@@ -145,7 +145,7 @@
             />
             <button
               type="submit"
-              class="btn-wrapper flex items-center justify-center w-full bg-[#00B44B] hover:bg-[#00A243] active:bg-[#00903C] focus:bg-[#00A243] dark:bg-[#00CD55] dark:hover:bg-[#15D265] dark:active:bg-[#32D777] dark:focus:bg-[#15D265]"
+              class="btn-primary flex items-center justify-center w-full bg-[#00B44B] dark:bg-[#00CD55]"
               disabled={isLoading}
             >
               {#if isLoading}
@@ -186,7 +186,7 @@
       <button
         on:click={() =>
           signIn("google", { callbackUrl: `/buy?${data.searchParams}` })}
-        class="flex items-center justify-center btn-wrapper w-full text-xl font-medium drop-shadow bg-white text-black/55 hover:bg-gray-200 dark:focus:ring-slate-300"
+        class="flex items-center justify-center btn-white w-full text-xl font-medium drop-shadow"
       >
         <svg
           viewBox="0 0 24 24"
@@ -222,7 +222,7 @@
       <button
         on:click={() =>
           signIn("apple", { callbackUrl: `/buy?${data.searchParams}` })}
-        class="flex items-center justify-center btn-wrapper text-xl font-medium drop-shadow w-full bg-black dark:bg-white text-white dark:text-[var(--text-black)] hover:bg-gray-800 dark:hover:bg-gray-200 focus:ring-slate-300"
+        class="flex items-center justify-center btn-black text-xl font-medium drop-shadow w-full"
       >
         <svg
           viewBox="0 0 25 24"
@@ -255,7 +255,10 @@
         })}
       </p>
     </div>
-    <button on:click={handleBuy} class="max-xs:w-full btn-primary">
+    <button
+      on:click={handleBuy}
+      class="max-xs:w-full btn-primary bg-[#2D8EFF] dark:bg-[#479DFF]"
+    >
       {$t("Continue to Payment")} &rarr;
     </button>
   </div>

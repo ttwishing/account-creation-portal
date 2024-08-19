@@ -234,7 +234,7 @@
       </div>
 
       <button
-        class="w-full btn-primary flex items-center justify-center"
+        class="btn-primary w-full flex items-center justify-center"
         on:click={handleConfirm}
         disabled={$loading || $creatingAccount || !$nameAvailable}
       >
