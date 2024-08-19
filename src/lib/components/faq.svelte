@@ -40,7 +40,7 @@
 		{
 			title: $t("Can I create multiple EOS accounts?"),
 			content: $t(
-				"EOS is a blockchain platform designed for decentralized applications (dApps).",
+				"Yes, you can create multiple EOS accounts, but each requires a separate creation process.",
 			),
 		},
 		{
@@ -54,7 +54,7 @@
 
 <div class="px-5 py-10 max-xs:px-0 max-xs:pt-0 max-xs:pb-5">
 	<button
-		class="rounded-lg py-3 px-5 w-full flex justify-between items-center bg-[#ECF5FF] hover:bg-[#E2EDFF] active:bg-[#D7E4FF] focus:bg-[#E2EDFF] focus:ring-black focus:ring-1 dark:bg-[#161616] dark:hover:bg-[#20242D] dark:active:bg-[#2C3245] dark:focus:bg-[#20242D] dark:focus:ring-white"
+		class="rounded-lg py-3 px-5 w-full flex justify-between items-center bg-[#ECF5FF] hover:bg-[#E2EDFF] active:bg-[#D7E4FF] focus:bg-[#E2EDFF] focus:ring-black focus:ring-2 dark:bg-[#161616] dark:hover:bg-[#20242D] dark:active:bg-[#2C3245] dark:focus:bg-[#20242D] dark:focus:ring-white"
 		on:click={() => {
 			faqExpanded = !faqExpanded;
 		}}
